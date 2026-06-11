@@ -1,0 +1,60 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{stepdiff}[2026/06/11 Token-level diffs for step-by-step derivations]
+
+\RequirePackage{amsmath}
+\RequirePackage{xcolor}
+\RequirePackage{xparse}
+
+% User-facing customization hooks.
+% Redefine these in the document preamble to change the visual style.
+\providecommand{\SDchanged}[1]{%
+  \begingroup
+  \setlength{\fboxsep}{1pt}%
+  \mathchoice
+    {\hbox{\colorbox{yellow!25}{$\displaystyle #1$}}}%
+    {\hbox{\colorbox{yellow!25}{$\textstyle #1$}}}%
+    {\hbox{\colorbox{yellow!25}{$\scriptstyle #1$}}}%
+    {\hbox{\colorbox{yellow!25}{$\scriptscriptstyle #1$}}}%
+  \endgroup
+}
+\providecommand{\SDreason}[1]{%
+  \normalfont\scriptsize\itshape\color{black!60}#1%
+}
+
+\directlua{stepdiff = require("stepdiff")}
+
+\ExplSyntaxOn
+
+\tl_new:N \l__stepdiff_reason_tl
+
+\keys_define:nn { stepdiff / step }
+  {
+    reason .tl_set:N = \l__stepdiff_reason_tl,
+    reason .initial:n = {}
+  }
+
+\NewDocumentEnvironment{stepdiff}{}
+  {
+    \directlua{stepdiff.begin()}
+  }
+  {
+    \directlua{stepdiff.render()}
+  }
+
+\NewDocumentCommand{\step}{ O{} m }
+  {
+    \group_begin:
+      \tl_clear:N \l__stepdiff_reason_tl
+      \keys_set:nn { stepdiff / step } { #1 }
+      \directlua{
+        stepdiff.add(
+          "\luaescapestring{\detokenize{#2}}",
+          "\luaescapestring{\tl_use:N \l__stepdiff_reason_tl}"
+        )
+      }
+    \group_end:
+  }
+
+\ExplSyntaxOff
+
+\endinput

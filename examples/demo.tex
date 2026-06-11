@@ -1,0 +1,48 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+
+\title{stepdiff MVP Demo}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Algebra expansion}
+
+\[
+\begin{stepdiff}
+\step{a(x+b)}
+\step[reason={distribute a}]{ax + ab}
+\step[reason={commute terms}]{ab + ax}
+\end{stepdiff}
+\]
+
+\section*{Sum formula derivation}
+
+\[
+\begin{stepdiff}
+\step{S_n = 1 + 2 + \cdots + n}
+\step[reason={reverse the sum}]{S_n = n + (n-1) + \cdots + 1}
+\step[reason={add both expressions}]{2S_n = (n+1) + (n+1) + \cdots + (n+1)}
+\step[reason={there are n terms}]{2S_n = n(n+1)}
+\step[reason={divide by 2}]{S_n = \frac{n(n+1)}{2}}
+\end{stepdiff}
+\]
+
+\section*{Simple derivative derivation}
+
+\[
+\begin{stepdiff}
+\step{f(x) = x^3 + 2x}
+\step[reason={differentiate term by term}]{f'(x) = 3x^2 + 2}
+\step[reason={evaluate at x=2}]{f'(2) = 3\cdot 2^2 + 2}
+\step[reason={simplify}]{f'(2) = 14}
+\end{stepdiff}
+\]
+
+\end{document}

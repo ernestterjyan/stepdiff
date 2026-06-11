@@ -1,4 +1,8 @@
 -- stepdiff.lua
+-- stepdiff v0.1.0
+-- Author: Ernest Terjyan
+-- Description: LuaLaTeX package for step-by-step derivations with visual diffing.
+-- License: MIT
 --
 -- Token-level visual diffing for the stepdiff LaTeX package.
 -- This module deliberately does not understand mathematics. It tokenizes the

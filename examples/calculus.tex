@@ -1,0 +1,36 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+
+\title{stepdiff Calculus Example}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Derivative}
+
+\[
+\begin{stepdiff}
+\step{f(x) = x^3 + 2x}
+\step[reason={differentiate term by term}]{f'(x) = 3x^2 + 2}
+\step[reason={evaluate at x=2}]{f'(2) = 3\cdot 2^2 + 2}
+\step[reason={simplify}]{f'(2) = 14}
+\end{stepdiff}
+\]
+
+\section*{Logarithmic differentiation}
+
+\[
+\begin{stepdiff}
+\step{y = x^{\sqrt{x}}}
+\step[reason={take logarithms}]{\log y = \sqrt{x}\log x}
+\step[reason={differentiate implicitly}]{\frac{y'}{y} = \frac{1}{2\sqrt{x}}\log x + \frac{1}{\sqrt{x}}}
+\end{stepdiff}
+\]
+
+\end{document}

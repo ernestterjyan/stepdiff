@@ -1,5 +1,5 @@
 -- stepdiff.lua
--- stepdiff v0.1.0
+-- stepdiff v0.2.0
 -- Author: Ernest Terjyan
 -- Description: LuaLaTeX package for step-by-step derivations with visual diffing.
 -- License: MIT
@@ -31,6 +31,30 @@ local function is_digit(c)
   return c:match("%d") ~= nil
 end
 
+local command_group_counts = {
+  ["\\frac"] = 2,
+  ["\\dfrac"] = 2,
+  ["\\tfrac"] = 2,
+  ["\\binom"] = 2,
+  ["\\sqrt"] = 1,
+  ["\\text"] = 1,
+  ["\\mathrm"] = 1,
+  ["\\mathbf"] = 1,
+  ["\\operatorname"] = 1
+}
+
+local function_commands = {
+  ["\\sin"] = true,
+  ["\\cos"] = true,
+  ["\\tan"] = true,
+  ["\\cot"] = true,
+  ["\\sec"] = true,
+  ["\\csc"] = true,
+  ["\\log"] = true,
+  ["\\ln"] = true,
+  ["\\exp"] = true
+}
+
 local function capture_balanced(s, i, open_char, close_char)
   local depth = 0
   local j = i
@@ -39,7 +63,7 @@ local function capture_balanced(s, i, open_char, close_char)
     local c = s:sub(j, j)
 
     if c == "\\" then
-      -- Skip escaped single characters while looking for the matching brace.
+      -- Skip escaped single characters while looking for the matching delimiter.
       j = math.min(j + 2, #s + 1)
     else
       if c == open_char then
@@ -65,41 +89,9 @@ local function skip_spaces(s, i)
   return i
 end
 
-local function read_command_token(s, i)
-  local j = i + 1
-  local name_start = j
-
-  if j <= #s and is_letter(s:sub(j, j)) then
-    while j <= #s and is_letter(s:sub(j, j)) do
-      j = j + 1
-    end
-  elseif j <= #s then
-    j = j + 1
-  end
-
-  local text = s:sub(i, j - 1)
-
-  -- Keep common command arguments attached to the command token. This avoids
-  -- producing invalid LaTeX such as \SDchanged{\frac}\SDchanged{{a}}.
-  local k = skip_spaces(s, j)
-  if k <= #s and s:sub(k, k) == "[" then
-    local opt, after_opt = capture_balanced(s, k, "[", "]")
-    text = text .. s:sub(j, k - 1) .. opt
-    j = after_opt
-    k = skip_spaces(s, j)
-  end
-
-  local group_count = 0
-  while k <= #s and s:sub(k, k) == "{" and group_count < 2 do
-    local group, after_group = capture_balanced(s, k, "{", "}")
-    text = text .. s:sub(j, k - 1) .. group
-    j = after_group
-    k = skip_spaces(s, j)
-    group_count = group_count + 1
-  end
-
-  return text, j
-end
+local read_command_token
+local read_math_suffixes
+local read_atom
 
 local function read_number_token(s, i)
   local j = i
@@ -119,20 +111,11 @@ local function read_script_argument(s, i)
     return "", i
   end
 
-  local c = s:sub(i, i)
-
-  if c == "{" then
-    return capture_balanced(s, i, "{", "}")
-  elseif c == "\\" then
-    return read_command_token(s, i)
-  elseif is_digit(c) then
-    return read_number_token(s, i)
-  else
-    return c, i + 1
-  end
+  local text, next_i = read_atom(s, i)
+  return text, next_i
 end
 
-local function read_math_suffixes(s, text, i)
+read_math_suffixes = function(s, text, i)
   while i <= #s do
     local c = s:sub(i, i)
 
@@ -153,6 +136,95 @@ local function read_math_suffixes(s, text, i)
   return text, i
 end
 
+read_command_token = function(s, i)
+  local j = i + 1
+
+  if j <= #s and is_letter(s:sub(j, j)) then
+    while j <= #s and is_letter(s:sub(j, j)) do
+      j = j + 1
+    end
+  elseif j <= #s then
+    j = j + 1
+  end
+
+  local command = s:sub(i, j - 1)
+  local text = command
+  local group_limit = command_group_counts[command] or 0
+
+  local k = skip_spaces(s, j)
+  if k <= #s and s:sub(k, k) == "[" then
+    local opt, after_opt = capture_balanced(s, k, "[", "]")
+    text = text .. s:sub(j, k - 1) .. opt
+    j = after_opt
+    k = skip_spaces(s, j)
+  end
+
+  local group_count = 0
+  while k <= #s and s:sub(k, k) == "{" and group_count < group_limit do
+    local group, after_group = capture_balanced(s, k, "{", "}")
+    text = text .. s:sub(j, k - 1) .. group
+    j = after_group
+    k = skip_spaces(s, j)
+    group_count = group_count + 1
+  end
+
+  return text, j, command
+end
+
+local function read_function_argument(s, i)
+  local arg_start = skip_spaces(s, i)
+  if arg_start > #s then
+    return "", i
+  end
+
+  local c = s:sub(arg_start, arg_start)
+  if c == "=" or c == "+" or c == "-" or c == ")" or c == "]" or c == "," or c == ";" then
+    return "", i
+  end
+
+  local arg, after_arg = read_atom(s, arg_start)
+  return s:sub(i, arg_start - 1) .. arg, after_arg
+end
+
+read_atom = function(s, i)
+  local c = s:sub(i, i)
+  local text
+  local next_i
+
+  if c == "\\" then
+    local command
+    text, next_i, command = read_command_token(s, i)
+    text, next_i = read_math_suffixes(s, text, next_i)
+
+    if function_commands[command] then
+      local arg, after_arg = read_function_argument(s, next_i)
+      if arg ~= "" then
+        text = text .. arg
+        next_i = after_arg
+      end
+    end
+
+    return text, next_i
+  elseif c == "{" then
+    text, next_i = capture_balanced(s, i, "{", "}")
+    return read_math_suffixes(s, text, next_i)
+  elseif c == "(" then
+    text, next_i = capture_balanced(s, i, "(", ")")
+    return read_math_suffixes(s, text, next_i)
+  elseif c == "[" then
+    text, next_i = capture_balanced(s, i, "[", "]")
+    return read_math_suffixes(s, text, next_i)
+  elseif is_digit(c) then
+    text, next_i = read_number_token(s, i)
+    return read_math_suffixes(s, text, next_i)
+  elseif is_letter(c) then
+    -- Variables remain individual atoms, but scripts/primes stay attached.
+    return read_math_suffixes(s, c, i + 1)
+  else
+    return c, i + 1
+  end
+end
+
 local function tokenize(s)
   local tokens = {}
   local i = 1
@@ -164,33 +236,11 @@ local function tokenize(s)
     if is_space(c) then
       leading = leading .. c
       i = i + 1
-    elseif c == "\\" then
-      local text, next_i = read_command_token(s, i)
-      text, next_i = read_math_suffixes(s, text, next_i)
-      tokens[#tokens + 1] = { text = text, leading = leading }
-      leading = ""
-      i = next_i
-    elseif c == "{" then
-      local text, next_i = capture_balanced(s, i, "{", "}")
-      tokens[#tokens + 1] = { text = text, leading = leading }
-      leading = ""
-      i = next_i
-    elseif is_digit(c) then
-      local text, next_i = read_number_token(s, i)
-      text, next_i = read_math_suffixes(s, text, next_i)
-      tokens[#tokens + 1] = { text = text, leading = leading }
-      leading = ""
-      i = next_i
-    elseif is_letter(c) then
-      -- Treat variables as individual tokens so "ax" can be compared as a*x.
-      local text, next_i = read_math_suffixes(s, c, i + 1)
-      tokens[#tokens + 1] = { text = text, leading = leading }
-      leading = ""
-      i = next_i
     else
-      tokens[#tokens + 1] = { text = c, leading = leading }
+      local text, next_i = read_atom(s, i)
+      tokens[#tokens + 1] = { text = text, leading = leading }
       leading = ""
-      i = i + 1
+      i = next_i
     end
   end
 
@@ -241,6 +291,11 @@ end
 local weak_tokens = {
   ["+"] = true, ["-"] = true, ["("] = true, [")"] = true,
   ["["] = true, ["]"] = true, [","] = true, [";"] = true
+}
+
+local bridge_tokens = {
+  ["+"] = true, ["-"] = true, ["("] = true, [")"] = true,
+  ["["] = true, ["]"] = true
 }
 
 local function normalize_diff_mode(mode)
@@ -318,14 +373,34 @@ local function render_all_range(tokens, first_index, last_index)
   return "\\SDchanged{" .. plain .. "}"
 end
 
+local function build_highlight_flags(tokens, first_index, last_index, matched, alignment_index)
+  local flags = {}
+
+  for i = first_index, last_index do
+    flags[i] = should_highlight_token(i, tokens[i], matched, alignment_index)
+  end
+
+  -- If weak punctuation/operator tokens sit between changed atoms, include them
+  -- in the same visual chunk. This stays textual: it does not infer meaning.
+  for i = first_index + 1, last_index - 1 do
+    local token = tokens[i]
+    if not flags[i] and bridge_tokens[token.text] and flags[i - 1] and flags[i + 1] then
+      flags[i] = true
+    end
+  end
+
+  return flags
+end
+
 local function render_token_range(tokens, first_index, last_index, matched, alignment_index)
   local out = {}
   local chunk = {}
+  local flags = build_highlight_flags(tokens, first_index, last_index, matched, alignment_index)
 
   for i = first_index, last_index do
     local token = tokens[i]
 
-    if should_highlight_token(i, token, matched, alignment_index) then
+    if flags[i] then
       chunk[#chunk + 1] = token
     else
       append_changed_chunk(out, chunk)

@@ -1,9 +1,9 @@
-% stepdiff v0.1.0
+% stepdiff v0.2.0
 % Author: Ernest Terjyan
 % Description: LuaLaTeX package for step-by-step derivations with visual diffing.
 % License: MIT
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{stepdiff}[2026/06/11 v0.1.0 Token-level diffs for step-by-step derivations]
+\ProvidesPackage{stepdiff}[2026/06/11 v0.2.0 Token-level diffs for step-by-step derivations]
 
 \RequirePackage{amsmath}
 \RequirePackage{xcolor}
@@ -30,6 +30,22 @@
 \providecommand{\SDshowreasons}{\SDshowreasonstrue}
 \providecommand{\SDmaybereason}[1]{\ifSDshowreasons\text{\SDreason{#1}}\else{}\fi}
 
+\newcommand{\SDstylehighlight}{%
+  \renewcommand{\SDchanged}[1]{%
+    \begingroup
+    \setlength{\fboxsep}{1pt}%
+    \mathchoice
+      {\hbox{\colorbox{yellow!25}{$\displaystyle ##1$}}}%
+      {\hbox{\colorbox{yellow!25}{$\textstyle ##1$}}}%
+      {\hbox{\colorbox{yellow!25}{$\scriptstyle ##1$}}}%
+      {\hbox{\colorbox{yellow!25}{$\scriptscriptstyle ##1$}}}%
+    \endgroup
+  }%
+}
+\newcommand{\SDstyleunderline}{%
+  \renewcommand{\SDchanged}[1]{\begingroup\color{red!70!black}\underline{##1}\endgroup}%
+}
+
 \directlua{stepdiff = require("stepdiff")}
 
 \ExplSyntaxOn
@@ -45,12 +61,22 @@
     diff .initial:n = auto
   }
 
-\NewDocumentEnvironment{stepdiff}{}
+\keys_define:nn { stepdiff / env }
   {
-    \directlua{stepdiff.begin()}
+    style .choice:,
+    style / highlight .code:n = { \SDstylehighlight },
+    style / underline .code:n = { \SDstyleunderline }
+  }
+
+\NewDocumentEnvironment{stepdiff}{ O{} }
+  {
+    \group_begin:
+      \keys_set:nn { stepdiff / env } { #1 }
+      \directlua{stepdiff.begin()}
   }
   {
-    \directlua{stepdiff.render()}
+      \directlua{stepdiff.render()}
+    \group_end:
   }
 
 \NewDocumentCommand{\step}{ O{} m }

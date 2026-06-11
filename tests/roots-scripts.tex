@@ -1,0 +1,12 @@
+\documentclass{article}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+\begin{document}
+\[
+\begin{stepdiff}
+\step{a_n = \sqrt{x}}
+\step[reason={indexed term}]{a_{n+1} = \sqrt[n]{x}}
+\step[reason={square}]{a_{n+1}^2 = x^{2}}
+\end{stepdiff}
+\]
+\end{document}

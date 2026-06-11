@@ -1,0 +1,21 @@
+\documentclass{article}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+\begin{document}
+\[
+\begin{stepdiff}[style=underline]
+\step{x^2-1 = (x-1)(x+1)}
+\step[reason={auto}, diff=auto]{x^2-1 = x^2-1}
+\step[reason={none}, diff=none]{x^2-1 = x^2-1}
+\step[reason={all}, diff=all]{x^2-1 = (x-1)(x+1)}
+\end{stepdiff}
+\]
+\SDhidereasons
+\[
+\begin{stepdiff}[style=highlight]
+\step{g(x)=x^2}
+\step[reason={hidden}]{g'(x)=2x}
+\end{stepdiff}
+\]
+\SDshowreasons
+\end{document}

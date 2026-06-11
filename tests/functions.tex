@@ -1,0 +1,12 @@
+\documentclass{article}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+\begin{document}
+\[
+\begin{stepdiff}
+\step{y = \sin x + \log x}
+\step[reason={differentiate}]{y' = \cos x + \frac{1}{x}}
+\step[reason={dots}]{y' = \cos x + \frac{1}{x} + \cdots}
+\end{stepdiff}
+\]
+\end{document}

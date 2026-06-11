@@ -32,6 +32,19 @@ Mathematical verification answers the question: "Is this transformation correct?
 
 `stepdiff` only answers the first question. It does not check equations, prove equality, call a CAS, or infer the mathematical meaning of a step.
 
+
+## v0.2.0 Tokenizer Direction
+
+Version 0.2.0 improves the tokenizer without changing the core philosophy. Common visual atoms such as `x^2`, `a_{n+1}`, `\frac{a}{b}`, `\sqrt[n]{x}`, `\sin x`, `\log x`, `\cdots`, and parenthesized expressions are kept together more often. This generally produces cleaner highlighting because the diff algorithm compares larger visual units instead of individual punctuation tokens.
+
+This is still not semantic parsing. The tokenizer does not know that two expressions are equivalent; it only tries to preserve common LaTeX math atoms so visual changes are easier to read.
+
+## Styles and Presentations
+
+The package now includes basic style controls such as `style=highlight` and `style=underline`. The underline style is useful when background colors do not print well or when a Beamer theme already uses strong colors.
+
+Beamer support is still basic: `stepdiff` can be used inside a frame, but overlay-aware step reveals are a future goal.
+
 ## Future Ideas
 
 - A better math atom tokenizer for scripts, fractions, roots, delimiters, and common operator forms.

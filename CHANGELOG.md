@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 - Improved visual diffing
+
+- Improved math atom tokenization.
+- Improved changed-chunk grouping.
+- Added Beamer example.
+- Added compilation-based regression tests.
+- Added environment styles: `style=highlight` and `style=underline`.
+- Improved documentation for customization.
+
 ## 0.1.0 - MVP
 
 Initial public MVP of `stepdiff`.

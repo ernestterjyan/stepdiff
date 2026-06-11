@@ -1,0 +1,12 @@
+\documentclass{article}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+\begin{document}
+\[
+\begin{stepdiff}
+\step{a(x+b)}
+\step[reason={expand}]{ax+ab}
+\step[reason={factor}, diff=false]{a(x+b)}
+\end{stepdiff}
+\]
+\end{document}

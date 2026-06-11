@@ -1,0 +1,18 @@
+\documentclass{beamer}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+
+\begin{document}
+
+\begin{frame}{Derivative example}
+\[
+\begin{stepdiff}
+\step{f(x)=x^3+2x}
+\step[reason={differentiate}]{f'(x)=3x^2+2}
+\step[reason={evaluate at x=2}]{f'(2)=3\cdot 2^2+2}
+\step[reason={simplify}]{f'(2)=14}
+\end{stepdiff}
+\]
+\end{frame}
+
+\end{document}

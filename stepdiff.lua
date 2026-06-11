@@ -234,21 +234,76 @@ local function lcs_matches(prev, curr)
   return matched_curr
 end
 
-local function highlight_token(token)
-  return token.leading .. "\\SDchanged{" .. token.text .. "}"
+local weak_tokens = {
+  ["+"] = true, ["-"] = true, ["("] = true, [")"] = true,
+  ["["] = true, ["]"] = true, [","] = true, [";"] = true
+}
+
+local function find_alignment_index(tokens)
+  for i, token in ipairs(tokens) do
+    if token.text == "=" then
+      return i
+    end
+  end
+  return nil
 end
 
-local function render_tokens(tokens, matched)
-  local out = {}
+local function should_highlight_token(index, token, matched, alignment_index)
+  if matched == nil or matched[index] then
+    return false
+  end
 
-  for i, token in ipairs(tokens) do
-    if matched == nil or matched[i] then
-      out[#out + 1] = token.leading .. token.text
-    else
-      out[#out + 1] = highlight_token(token)
+  -- The first equals sign is structural: it is used for alignment.
+  if alignment_index == index and token.text == "=" then
+    return false
+  end
+
+  return true
+end
+
+local function append_changed_chunk(out, chunk)
+  if #chunk == 0 then
+    return
+  end
+
+  local only_weak = true
+  for _, token in ipairs(chunk) do
+    if not weak_tokens[token.text] then
+      only_weak = false
+      break
     end
   end
 
+  local first = chunk[1]
+  local text = first.text
+  for i = 2, #chunk do
+    text = text .. chunk[i].leading .. chunk[i].text
+  end
+
+  if only_weak then
+    out[#out + 1] = first.leading .. text
+  else
+    out[#out + 1] = first.leading .. "\\SDchanged{" .. text .. "}"
+  end
+end
+
+local function render_token_range(tokens, first_index, last_index, matched, alignment_index)
+  local out = {}
+  local chunk = {}
+
+  for i = first_index, last_index do
+    local token = tokens[i]
+
+    if should_highlight_token(i, token, matched, alignment_index) then
+      chunk[#chunk + 1] = token
+    else
+      append_changed_chunk(out, chunk)
+      chunk = {}
+      out[#out + 1] = token.leading .. token.text
+    end
+  end
+
+  append_changed_chunk(out, chunk)
   return table.concat(out)
 end
 
@@ -257,7 +312,7 @@ local function render_reason(reason)
   if reason == "" then
     return "{}"
   end
-  return "\\quad\\text{\\SDreason{" .. reason .. "}}"
+  return "\\text{\\SDreason{" .. reason .. "}}"
 end
 
 function M.begin()
@@ -283,14 +338,21 @@ function M.render()
   for i, step in ipairs(steps) do
     local body
 
-    if i == 1 then
-      body = render_tokens(step.tokens, nil)
-    else
-      local matched = lcs_matches(steps[i - 1].tokens, step.tokens)
-      body = render_tokens(step.tokens, matched)
+    local matched = nil
+    if i > 1 then
+      matched = lcs_matches(steps[i - 1].tokens, step.tokens)
     end
 
-    rows[#rows + 1] = body .. " & " .. render_reason(step.reason)
+    local alignment_index = find_alignment_index(step.tokens)
+    if alignment_index ~= nil then
+      local lhs = render_token_range(step.tokens, 1, alignment_index - 1, matched, alignment_index)
+      local rhs = render_token_range(step.tokens, alignment_index + 1, #step.tokens, matched, alignment_index)
+      body = lhs .. " & = " .. rhs
+    else
+      body = render_token_range(step.tokens, 1, #step.tokens, matched, alignment_index) .. " & {}"
+    end
+
+    rows[#rows + 1] = body .. " && " .. render_reason(step.reason)
     if i < #steps then
       rows[#rows + 1] = "\\\\"
     end

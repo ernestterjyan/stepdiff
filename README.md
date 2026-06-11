@@ -10,11 +10,13 @@ only. It does not try to understand, verify, or classify the mathematics.
 ## What it does
 
 - Typesets derivations as aligned display math.
+- Aligns each step at the first `=` when one is present.
 - Compares consecutive `\step{...}` lines.
 - Ignores whitespace while comparing.
-- Highlights tokens in the current line that are not part of a longest common
-  subsequence with the previous line.
-- Supports an optional right-side annotation with `reason={...}`.
+- Groups nearby changed tokens and highlights the changed chunks in the current
+  line.
+- Places optional `reason={...}` annotations in a separate right-hand annotation
+  column.
 - Lets users redefine `\SDchanged{...}` and `\SDreason{...}`.
 
 ## What it does not do
@@ -24,6 +26,12 @@ only. It does not try to understand, verify, or classify the mathematics.
 - It does not detect whether a step is expansion, factorization,
   differentiation, cancellation, or simplification.
 - It does not display deleted tokens from the previous line.
+
+## Design philosophy
+
+`stepdiff` helps authors make derivations visually clear, but it does not check
+the mathematics. The highlighting is token-based and approximate: it is meant to
+show where the written expression changed, not why the change is valid.
 
 ## Usage
 
@@ -44,11 +52,20 @@ only. It does not try to understand, verify, or classify the mathematics.
 \end{document}
 ```
 
-Customize highlighting by redefining the user hooks:
+Lines containing `=` are aligned at the first equals sign. Reasons are placed in
+a separate annotation column, visually similar to:
+
+```latex
+\begin{aligned}
+left & = right && \text{reason}
+\end{aligned}
+```
+
+Customize highlighting and reason styling by redefining the user hooks:
 
 ```latex
 \renewcommand{\SDchanged}[1]{\color{red}{#1}}
-\renewcommand{\SDreason}[1]{\quad\text{\scriptsize #1}}
+\renewcommand{\SDreason}[1]{\normalfont\scriptsize\itshape #1}
 ```
 
 ## Building the demo
@@ -74,18 +91,18 @@ make clean
 ## Current limitations
 
 - Diffing is purely textual and token-based.
+- Highlighting is approximate and may still choose unintuitive chunks.
 - Removed tokens are not shown because only the current line is rendered.
 - LaTeX tokenization is deliberately basic and may be coarse around complex
   macros.
 - Commands with braced arguments, such as `\frac{...}{...}`, are usually kept
   as one token to avoid invalid highlighted output.
-- Alignment is simple: the full expression is placed in one math column and the
-  reason is placed in a second column.
+- Alignment currently uses only the first literal `=` in each step.
 
 ## Planned next features
 
 - Better token grouping for common math constructs such as powers,
   subscripts, fractions, roots, and paired delimiters.
 - Optional styles for insertions, replacements, and unchanged context.
-- More alignment modes, including alignment around relation symbols such as
-  `=`, `\le`, and `\approx`.
+- More relation-aware alignment, including `\le`, `\approx`, and similar
+  relation symbols.

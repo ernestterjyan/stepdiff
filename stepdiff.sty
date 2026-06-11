@@ -20,17 +20,25 @@
 \providecommand{\SDreason}[1]{%
   \normalfont\scriptsize\itshape\color{black!60}#1%
 }
+\newif\ifSDshowreasons
+\SDshowreasonstrue
+\providecommand{\SDhidereasons}{\SDshowreasonsfalse}
+\providecommand{\SDshowreasons}{\SDshowreasonstrue}
+\providecommand{\SDmaybereason}[1]{\ifSDshowreasons\text{\SDreason{#1}}\else{}\fi}
 
 \directlua{stepdiff = require("stepdiff")}
 
 \ExplSyntaxOn
 
 \tl_new:N \l__stepdiff_reason_tl
+\tl_new:N \l__stepdiff_diff_tl
 
 \keys_define:nn { stepdiff / step }
   {
     reason .tl_set:N = \l__stepdiff_reason_tl,
-    reason .initial:n = {}
+    reason .initial:n = {},
+    diff .tl_set:N = \l__stepdiff_diff_tl,
+    diff .initial:n = auto
   }
 
 \NewDocumentEnvironment{stepdiff}{}
@@ -45,11 +53,13 @@
   {
     \group_begin:
       \tl_clear:N \l__stepdiff_reason_tl
+      \tl_set:Nn \l__stepdiff_diff_tl { auto }
       \keys_set:nn { stepdiff / step } { #1 }
       \directlua{
         stepdiff.add(
           "\luaescapestring{\detokenize{#2}}",
-          "\luaescapestring{\tl_use:N \l__stepdiff_reason_tl}"
+          "\luaescapestring{\tl_use:N \l__stepdiff_reason_tl}",
+          "\luaescapestring{\tl_use:N \l__stepdiff_diff_tl}"
         )
       }
     \group_end:

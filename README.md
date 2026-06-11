@@ -18,6 +18,7 @@ only. It does not try to understand, verify, or classify the mathematics.
 - Places optional `reason={...}` annotations in a separate right-hand annotation
   column.
 - Lets users redefine `\SDchanged{...}` and `\SDreason{...}`.
+- Supports per-step manual controls with `diff=auto`, `diff=false`, `diff=none`, and `diff=all`.
 
 ## What it does not do
 
@@ -62,6 +63,39 @@ left & = right && \text{reason}
 ```
 
 Customize highlighting and reason styling by redefining the user hooks:
+
+```latex
+\renewcommand{\SDchanged}[1]{\color{red}{#1}}
+\renewcommand{\SDreason}[1]{\normalfont\scriptsize\itshape #1}
+```
+
+
+## Manual control
+
+Automatic token-level diffing is approximate, so each step can choose a diff
+mode:
+
+```latex
+\step[reason={expand}, diff=auto]{x^2 + 2x + 1}
+\step[reason={too noisy}, diff=false]{x^2 + 2x + 1}
+\step[reason={important final formula}, diff=all]{x^2 + 2x + 1}
+```
+
+- `diff=auto` is the default. It compares the current step to the previous step
+  using token-level diffing.
+- `diff=false` disables automatic highlighting for that line. `diff=none` is an
+  equivalent spelling.
+- `diff=all` highlights the whole mathematical line while keeping the reason
+  annotation in place.
+
+Reasons can be hidden or shown globally after loading the package:
+
+```latex
+\SDhidereasons
+\SDshowreasons
+```
+
+The styling hooks remain ordinary user-level macros:
 
 ```latex
 \renewcommand{\SDchanged}[1]{\color{red}{#1}}

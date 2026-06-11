@@ -239,6 +239,16 @@ local weak_tokens = {
   ["["] = true, ["]"] = true, [","] = true, [";"] = true
 }
 
+local function normalize_diff_mode(mode)
+  mode = strip_tex_sentinels(mode):lower():gsub("^%s+", ""):gsub("%s+$", "")
+  if mode == "false" or mode == "none" then
+    return "none"
+  elseif mode == "all" then
+    return "all"
+  end
+  return "auto"
+end
+
 local function find_alignment_index(tokens)
   for i, token in ipairs(tokens) do
     if token.text == "=" then
@@ -287,6 +297,23 @@ local function append_changed_chunk(out, chunk)
   end
 end
 
+local function render_plain_range(tokens, first_index, last_index)
+  local out = {}
+  for i = first_index, last_index do
+    local token = tokens[i]
+    out[#out + 1] = token.leading .. token.text
+  end
+  return table.concat(out)
+end
+
+local function render_all_range(tokens, first_index, last_index)
+  local plain = render_plain_range(tokens, first_index, last_index)
+  if plain == "" then
+    return plain
+  end
+  return "\\SDchanged{" .. plain .. "}"
+end
+
 local function render_token_range(tokens, first_index, last_index, matched, alignment_index)
   local out = {}
   local chunk = {}
@@ -312,20 +339,22 @@ local function render_reason(reason)
   if reason == "" then
     return "{}"
   end
-  return "\\text{\\SDreason{" .. reason .. "}}"
+  return "\\SDmaybereason{" .. reason .. "}"
 end
 
 function M.begin()
   steps = {}
 end
 
-function M.add(math, reason)
+function M.add(math, reason, diff_mode)
   math = strip_tex_sentinels(math)
   reason = strip_tex_sentinels(reason)
+  diff_mode = normalize_diff_mode(diff_mode or "auto")
 
   steps[#steps + 1] = {
     math = math,
     reason = reason,
+    diff_mode = diff_mode,
     tokens = tokenize(math)
   }
 end
@@ -339,17 +368,32 @@ function M.render()
     local body
 
     local matched = nil
-    if i > 1 then
+    if i > 1 and step.diff_mode == "auto" then
       matched = lcs_matches(steps[i - 1].tokens, step.tokens)
     end
 
     local alignment_index = find_alignment_index(step.tokens)
+    local render_range = render_token_range
+    if step.diff_mode == "none" then
+      render_range = function(tokens, first_index, last_index)
+        return render_plain_range(tokens, first_index, last_index)
+      end
+    elseif step.diff_mode == "all" then
+      render_range = function(tokens, first_index, last_index)
+        return render_all_range(tokens, first_index, last_index)
+      end
+    end
+
     if alignment_index ~= nil then
-      local lhs = render_token_range(step.tokens, 1, alignment_index - 1, matched, alignment_index)
-      local rhs = render_token_range(step.tokens, alignment_index + 1, #step.tokens, matched, alignment_index)
-      body = lhs .. " & = " .. rhs
+      local lhs = render_range(step.tokens, 1, alignment_index - 1, matched, alignment_index)
+      local rhs = render_range(step.tokens, alignment_index + 1, #step.tokens, matched, alignment_index)
+      local relation = "="
+      if step.diff_mode == "all" then
+        relation = "\\SDchanged{=}"
+      end
+      body = lhs .. " & " .. relation .. " " .. rhs
     else
-      body = render_token_range(step.tokens, 1, #step.tokens, matched, alignment_index) .. " & {}"
+      body = render_range(step.tokens, 1, #step.tokens, matched, alignment_index) .. " & {}"
     end
 
     rows[#rows + 1] = body .. " && " .. render_reason(step.reason)

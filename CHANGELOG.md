@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 - Unreleased
+
+- Added Lua-side tests for tokenizer behavior.
+- Added Lua-side tests for diff rendering.
+- Improved internal testability of `stepdiff.lua`.
+
 ## 0.2.0 - Improved visual diffing
 
 - Improved math atom tokenization.

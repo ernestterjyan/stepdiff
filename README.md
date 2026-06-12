@@ -6,7 +6,7 @@ LuaLaTeX is required. `stepdiff` uses Lua for tokenization and diffing, so it wi
 
 ## Status
 
-Current version: v0.2.0 MVP.
+Current released version: v0.2.0 MVP. Development has started for v0.3.0.
 
 `stepdiff` is usable for simple derivations, examples, and experimentation, but it is not yet a full CTAN-ready package.
 
@@ -52,6 +52,7 @@ From this repository, build the examples with:
 make demo
 make examples
 make test
+make lua-test
 ```
 
 Generated PDFs are ignored by Git. Rebuild them locally with the Makefile.
@@ -168,10 +169,16 @@ Compile all examples:
 make examples
 ```
 
-Run compile-only regression tests:
+Run compile-only regression tests and Lua-side unit tests:
 
 ```bash
 make test
+```
+
+Run only the Lua-side unit tests:
+
+```bash
+make lua-test
 ```
 
 ## Limitations

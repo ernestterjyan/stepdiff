@@ -1,4 +1,4 @@
-.PHONY: demo examples test clean
+.PHONY: demo examples test lua-test clean
 
 EXAMPLES := $(wildcard examples/*.tex)
 TESTS := $(wildcard tests/*.tex)
@@ -34,6 +34,10 @@ test:
 		echo "Testing $$file"; \
 		lualatex -output-directory=tests "$$file" || exit 1; \
 	done
+	$(MAKE) lua-test
+
+lua-test:
+	texlua lua-tests/run.lua
 
 clean:
 	rm -f $(ROOT_CLEAN_FILES)

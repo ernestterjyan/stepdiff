@@ -39,6 +39,12 @@ Version 0.2.0 improves the tokenizer without changing the core philosophy. Commo
 
 This is still not semantic parsing. The tokenizer does not know that two expressions are equivalent; it only tries to preserve common LaTeX math atoms so visual changes are easier to read.
 
+## v0.3.0 Internal Testing Direction
+
+Version 0.3.0 starts adding Lua-side unit tests for the tokenizer and visual diff renderer. The internal test hooks expose tokenizer output, LCS matching, and step rendering through `stepdiff._test` so these behaviors can be checked without compiling a full LaTeX document for every case.
+
+These tests are still about visual reliability, not mathematical meaning. They check that common LaTeX math atoms stay coherent and that changed chunks render as valid LaTeX-like output with `\SDchanged{...}` where expected.
+
 ## Styles and Presentations
 
 The package now includes basic style controls such as `style=highlight` and `style=underline`. The underline style is useful when background colors do not print well or when a Beamer theme already uses strong colors.

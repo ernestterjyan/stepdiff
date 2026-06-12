@@ -457,6 +457,87 @@ local function render_reason(reason)
   return "\\SDmaybereason{" .. reason .. "}"
 end
 
+local function make_step(math, reason, diff_mode)
+  math = strip_tex_sentinels(math)
+  reason = strip_tex_sentinels(reason)
+  diff_mode = normalize_diff_mode(diff_mode or "auto")
+
+  return {
+    math = math,
+    reason = reason,
+    diff_mode = diff_mode,
+    tokens = tokenize(math)
+  }
+end
+
+local function select_render_range(diff_mode)
+  if diff_mode == "none" then
+    return function(tokens, first_index, last_index)
+      return render_plain_range(tokens, first_index, last_index)
+    end
+  elseif diff_mode == "all" then
+    return function(tokens, first_index, last_index)
+      return render_all_range(tokens, first_index, last_index)
+    end
+  end
+
+  return render_token_range
+end
+
+local function render_step_body(prev_step, step)
+  local matched = nil
+  if prev_step ~= nil and step.diff_mode == "auto" then
+    matched = lcs_matches(prev_step.tokens, step.tokens)
+  end
+
+  local alignment_index = find_alignment_index(step.tokens)
+  local render_range = select_render_range(step.diff_mode)
+
+  if alignment_index ~= nil then
+    local lhs = render_range(
+      step.tokens,
+      1,
+      alignment_index - 1,
+      matched,
+      alignment_index
+    )
+    local rhs = render_range(
+      step.tokens,
+      alignment_index + 1,
+      #step.tokens,
+      matched,
+      alignment_index
+    )
+    local relation = "="
+    if step.diff_mode == "all" then
+      relation = "\\SDchanged{=}"
+    end
+    return lhs .. " & " .. relation .. " " .. rhs
+  end
+
+  return render_range(step.tokens, 1, #step.tokens, matched, alignment_index)
+    .. " & {}"
+end
+
+local function render_latex(step_list)
+  local rows = {}
+
+  rows[#rows + 1] = "\\begin{aligned}"
+
+  for i, step in ipairs(step_list) do
+    local body = render_step_body(step_list[i - 1], step)
+    rows[#rows + 1] = body .. " && " .. render_reason(step.reason)
+
+    if i < #step_list then
+      rows[#rows + 1] = "\\\\"
+    end
+  end
+
+  rows[#rows + 1] = "\\end{aligned}"
+
+  return strip_tex_sentinels(table.concat(rows, " "))
+end
+
 -- ---------------------------------------------------------------------------
 -- Public API
 -- ---------------------------------------------------------------------------
@@ -466,79 +547,32 @@ function M.begin()
 end
 
 function M.add(math, reason, diff_mode)
-  math = strip_tex_sentinels(math)
-  reason = strip_tex_sentinels(reason)
-  diff_mode = normalize_diff_mode(diff_mode or "auto")
-
-  steps[#steps + 1] = {
-    math = math,
-    reason = reason,
-    diff_mode = diff_mode,
-    tokens = tokenize(math)
-  }
+  steps[#steps + 1] = make_step(math, reason, diff_mode)
 end
 
 function M.render()
-  local rows = {}
-
-  rows[#rows + 1] = "\\begin{aligned}"
-
-  for i, step in ipairs(steps) do
-    local body
-
-    local matched = nil
-    if i > 1 and step.diff_mode == "auto" then
-      matched = lcs_matches(steps[i - 1].tokens, step.tokens)
-    end
-
-    local alignment_index = find_alignment_index(step.tokens)
-    local render_range = render_token_range
-    if step.diff_mode == "none" then
-      render_range = function(tokens, first_index, last_index)
-        return render_plain_range(tokens, first_index, last_index)
-      end
-    elseif step.diff_mode == "all" then
-      render_range = function(tokens, first_index, last_index)
-        return render_all_range(tokens, first_index, last_index)
-      end
-    end
-
-    if alignment_index ~= nil then
-      local lhs = render_range(
-        step.tokens,
-        1,
-        alignment_index - 1,
-        matched,
-        alignment_index
-      )
-      local rhs = render_range(
-        step.tokens,
-        alignment_index + 1,
-        #step.tokens,
-        matched,
-        alignment_index
-      )
-      local relation = "="
-      if step.diff_mode == "all" then
-        relation = "\\SDchanged{=}"
-      end
-      body = lhs .. " & " .. relation .. " " .. rhs
-    else
-      body =
-        render_range(step.tokens, 1, #step.tokens, matched, alignment_index)
-        .. " & {}"
-    end
-
-    rows[#rows + 1] = body .. " && " .. render_reason(step.reason)
-    if i < #steps then
-      rows[#rows + 1] = "\\\\"
-    end
-  end
-
-  rows[#rows + 1] = "\\end{aligned}"
-
-  local latex = strip_tex_sentinels(table.concat(rows, " "))
+  local latex = render_latex(steps)
   tex.sprint(latex)
+  return latex
 end
+
+M._test = {
+  strip_tex_sentinels = strip_tex_sentinels,
+  tokenize = tokenize,
+  lcs_matches = lcs_matches,
+  normalize_diff_mode = normalize_diff_mode,
+  make_step = make_step,
+  render_step_body = render_step_body,
+  render_latex = render_latex,
+  render_pair = function(prev_math, curr_math, diff_mode)
+    local prev_step = nil
+    if prev_math ~= nil then
+      prev_step = make_step(prev_math, "", "auto")
+    end
+
+    local step = make_step(curr_math, "", diff_mode or "auto")
+    return render_step_body(prev_step, step)
+  end
+}
 
 return M

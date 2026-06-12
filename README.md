@@ -10,6 +10,8 @@ Current version: v0.2.0 MVP.
 
 `stepdiff` is usable for simple derivations, examples, and experimentation, but it is not yet a full CTAN-ready package.
 
+![stepdiff demo](docs/assets/demo-preview.png)
+
 ## What it does
 
 - Provides a `stepdiff` math environment and a `\step` command.

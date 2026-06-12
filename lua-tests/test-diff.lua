@@ -47,4 +47,12 @@ return function(t)
     t.assert_contains(out, "\\SDchanged{=}")
     t.assert_contains(out, "\\SDchanged{2}")
   end)
+
+  t.test("overlay rendering wraps each aligned cell", function()
+    local out = diff.render_overlay_pair("x=1", "x=2", "2-")
+    t.assert_contains(out, "\\onslide<2->{x}")
+    t.assert_contains(out, " & \\onslide<2->{= \\SDchanged{2}}")
+    t.assert_contains(out, " && \\onslide<2->{\\SDmaybereason{shown}}")
+  end)
+
 end

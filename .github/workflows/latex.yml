@@ -28,3 +28,4 @@ jobs:
           make clean
           make examples
           make test
+          make lua-test

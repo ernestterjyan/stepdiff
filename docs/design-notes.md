@@ -1,74 +1,64 @@
 # Design Notes
 
-`stepdiff` is currently a visual diffing tool, not a mathematics engine. The package compares consecutive derivation lines and highlights the tokens that changed. This keeps the implementation small, predictable, and useful for authors who already know what derivation they want to write.
+`stepdiff` is a visual diffing tool, not a mathematics engine. The package compares consecutive derivation lines and highlights tokens that changed. This keeps the implementation small, predictable, and useful for authors who already know the derivation they want to write.
+
+## Core Identity
+
+`stepdiff` is a LuaLaTeX package for visual token-level diffing between consecutive mathematical derivation steps. It helps teachers, lecturers, and authors write clean derivations with highlighted changes.
+
+The package deliberately does not verify mathematics, prove transformations, or call a computer algebra system.
 
 ## Why Token-Level Diffing
 
-Mathematical notation in LaTeX is rich, flexible, and often author-specific. A full parser would have to understand macros, local notation, implicit multiplication, spacing commands, and many equivalent ways of writing the same expression. For a first MVP, token-level diffing gives immediate value without pretending to solve mathematical equivalence.
+Mathematical notation in LaTeX is rich, flexible, and often author-specific. A full parser would have to understand macros, local notation, implicit multiplication, spacing commands, and many equivalent ways of writing the same expression.
 
-The goal is visual clarity: help readers see what changed from one line to the next.
-
-## Why Not Semantic Mathematics Yet
-
-Semantic mathematics is a much harder problem. Detecting whether a line is a valid expansion, simplification, factorization, derivative, or algebraic transformation would require a mathematical parser and likely a computer algebra system. That would add complexity, dependencies, and failure modes that do not belong in the minimal package yet.
-
-For now, `stepdiff` assumes the author is responsible for correctness.
+Token-level diffing gives useful visual feedback without pretending to solve mathematical equivalence. The goal is visual clarity: help readers see what changed from one line to the next.
 
 ## Manual Controls Are Necessary
 
 Automatic visual diffing will never be perfect. Sometimes a token-level algorithm highlights too much, too little, or the wrong local chunk. This is why per-step controls exist:
 
-- `diff=auto` for the default automatic behavior.
+- `diff=auto` for default automatic behavior.
 - `diff=false` or `diff=none` when highlighting is noisy.
 - `diff=all` when the author wants to emphasize a whole line.
 
 These controls keep the package useful in real lecture notes, where presentation quality matters more than algorithmic purity.
 
-## Visual Diffing vs. Mathematical Verification
+## Relation-Aware Alignment
 
-Visual diffing answers the question: "What text changed on the page?"
-
-Mathematical verification answers the question: "Is this transformation correct?"
-
-`stepdiff` only answers the first question. It does not check equations, prove equality, call a CAS, or infer the mathematical meaning of a step.
-
-
-## v0.2.0 Tokenizer Direction
-
-Version 0.2.0 improves the tokenizer without changing the core philosophy. Common visual atoms such as `x^2`, `a_{n+1}`, `\frac{a}{b}`, `\sqrt[n]{x}`, `\sin x`, `\log x`, `\cdots`, and parenthesized expressions are kept together more often. This generally produces cleaner highlighting because the diff algorithm compares larger visual units instead of individual punctuation tokens.
-
-This is still not semantic parsing. The tokenizer does not know that two expressions are equivalent; it only tries to preserve common LaTeX math atoms so visual changes are easier to read.
-
-## v0.3.0 Internal Testing Direction
-
-Version 0.3.0 starts adding Lua-side unit tests for the tokenizer and visual diff renderer. The internal test hooks expose tokenizer output, LCS matching, and step rendering through `stepdiff._test` so these behaviors can be checked without compiling a full LaTeX document for every case.
-
-These tests are still about visual reliability, not mathematical meaning. They check that common LaTeX math atoms stay coherent and that changed chunks render as valid LaTeX-like output with `\SDchanged{...}` where expected.
-
-## v0.4.0 Relation Alignment Direction
-
-Version 0.4.0 adds relation-aware alignment while keeping the implementation token-based. After tokenization, `stepdiff` scans the top-level token list for the first recognized relation token, such as `=`, `\le`, `\ge`, `\approx`, `\equiv`, or `\Rightarrow`, and uses that token as the alignment point.
+Relation-aware alignment scans the tokenized top-level expression for the first recognized relation token, such as `=`, `\le`, `\ge`, `\approx`, `\equiv`, or `\Rightarrow`, and uses that token as the alignment point.
 
 This deliberately depends on tokenizer boundaries. Braced groups, fractions, roots, and parenthesized atoms are normally kept as single tokens, so relation-like text inside those atoms is not treated as an alignment target. That keeps the detector conservative and avoids splitting inside common LaTeX constructs.
 
-## v0.5.0 Visual Presentation Direction
+## Visual Presentation Controls
 
-Version 0.5.0 focuses on TeX-side presentation controls rather than new math behavior. Themes, highlight modes, and layout modes change how existing visual diffs are displayed while leaving tokenization and relation-aware alignment conceptually unchanged.
+Themes, highlight modes, and layout modes are TeX-side presentation controls. They change how existing visual diffs are displayed while leaving tokenization and relation-aware alignment conceptually unchanged.
 
 The styling layer remains deliberately small: `\SDchanged{...}` controls changed math chunks, `\SDreason{...}` controls reason text, and layout options adjust row spacing and the reason-column separation. These hooks stay customizable so authors can adapt the package to lecture notes, print handouts, or house styles.
 
-Final-step emphasis is still handled through existing diff controls, especially `diff=all`. A dedicated `tag=final` option may be added later if it can be done without complicating row rendering.
+## v1.0.0-rc1 Direction
 
-## Styles and Presentations
+The release-candidate milestone stabilizes the public API rather than changing the diffing model. It adds two author-facing conveniences:
 
-The package includes style controls such as `theme=soft`, `theme=minimal`, `highlight=background`, `highlight=underline`, `highlight=color`, `highlight=none`, and layout modes for compact, lecture, and wide spacing. The older `style=highlight` and `style=underline` aliases remain available for compatibility.
+- Beamer overlay syntax for `\step<...>{...}`.
+- `\stepdiffsetup{...}` for document-level visual defaults.
 
-Beamer support is still basic: `stepdiff` can be used inside a frame, but overlay-aware step reveals are a future goal.
+Overlay support is row-level. The formula cells and reason annotation for a step are wrapped with Beamer overlay commands so they appear together. In non-Beamer documents, overlay syntax is accepted and rendered without overlay behavior.
+
+Global setup remains simple: it stores a default key list for `theme`, `layout`, `highlight`, and reason visibility. Each `stepdiff` environment applies compact defaults, then global setup, then local environment options.
+
+## Testing Direction
+
+The repository uses both compile tests and Lua-side tests.
+
+Compile tests protect the LaTeX API, Beamer usage, visual style options, relation-aware alignment, global setup, and overlay syntax. Lua tests protect tokenizer behavior, diff rendering, relation detection, and overlay row rendering.
+
+These tests are about visual and structural reliability. They do not check mathematical correctness.
 
 ## Future Ideas
 
 - Continue improving the math atom tokenizer for scripts, fractions, roots, delimiters, relation tokens, and common operator forms.
-- Optional semantic mode for users who want deeper checking or CAS integration.
-- More refined theme presets for print, dark-on-light lecture notes, and projector slides.
-- Beamer support, including overlays for revealing derivation steps.
-- More robust test documents that cover common LaTeX math constructs.
+- Add more polished final-step emphasis controls beyond `diff=all`.
+- Add more robust examples from lecture notes and slide decks.
+- Prepare CTAN-style packaging metadata.
+- Consider optional semantic integrations only if they can remain clearly separate from the visual diffing core.

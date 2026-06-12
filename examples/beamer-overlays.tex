@@ -1,0 +1,34 @@
+\documentclass{beamer}
+
+\usepackage{xcolor}
+\usepackage{stepdiff}
+
+\title{stepdiff Beamer Overlays}
+\author{}
+\date{}
+
+\stepdiffsetup{theme=soft, layout=lecture, highlight=background}
+
+\begin{document}
+
+\begin{frame}{Algebra reveal}
+\[
+\begin{stepdiff}
+\step<1->{a(x+b)}
+\step<2->[reason={distribute}]{ax+ab}
+\step<3->[reason={commute terms}]{ab+ax}
+\end{stepdiff}
+\]
+\end{frame}
+
+\begin{frame}{Derivative reveal}
+\[
+\begin{stepdiff}[theme=minimal, highlight=underline]
+\step<1->{f(x)=x^2+3x}
+\step<2->[reason={differentiate}]{f'(x)=2x+3}
+\step<3->[reason={evaluate at x=3}, diff=all]{f'(3)=9}
+\end{stepdiff}
+\]
+\end{frame}
+
+\end{document}

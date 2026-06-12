@@ -1,4 +1,5 @@
-% stepdiff v0.5.0
+% stepdiff
+% Version: 1.0.0-rc1
 % Author: Ernest Terjyan
 % Description: LuaLaTeX package for step-by-step derivations with visual diffing.
 % License: MIT
@@ -8,7 +9,7 @@
 % ---------------------------------------------------------------------------
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{stepdiff}
-  [2026/06/13 v0.5.0 Token-level diffs for step-by-step derivations]
+  [2026/06/13 v1.0.0-rc1 Token-level diffs for step-by-step derivations]
 
 % ---------------------------------------------------------------------------
 % Required packages
@@ -16,6 +17,14 @@
 \RequirePackage{amsmath}
 \RequirePackage{xcolor}
 \RequirePackage{xparse}
+
+% ---------------------------------------------------------------------------
+% Beamer detection
+% ---------------------------------------------------------------------------
+\newif\ifSDbeamer
+\makeatletter
+\@ifclassloaded{beamer}{\SDbeamertrue}{\SDbeamerfalse}
+\makeatother
 
 % ---------------------------------------------------------------------------
 % User customization hooks
@@ -129,8 +138,11 @@
 % ---------------------------------------------------------------------------
 \ExplSyntaxOn
 
+\tl_new:N \g__stepdiff_setup_tl
 \tl_new:N \l__stepdiff_reason_tl
 \tl_new:N \l__stepdiff_diff_tl
+\tl_new:N \l__stepdiff_overlay_tl
+\cs_generate_variant:Nn \keys_set:nn { nV }
 
 \keys_define:nn { stepdiff / step }
   {
@@ -154,9 +166,20 @@
     highlight / underline .code:n = { \SDhighlightunderline },
     highlight / color .code:n = { \SDhighlightcolor },
     highlight / none .code:n = { \SDhighlightnone },
+    show-reasons .choice:,
+    show-reasons / true .code:n = { \SDshowreasons },
+    show-reasons / false .code:n = { \SDhidereasons },
     style .choice:,
     style / highlight .code:n = { \SDstylehighlight },
     style / underline .code:n = { \SDstyleunderline }
+  }
+
+% ---------------------------------------------------------------------------
+% Global setup
+% ---------------------------------------------------------------------------
+\NewDocumentCommand{\stepdiffsetup}{ m }
+  {
+    \tl_gset:Nn \g__stepdiff_setup_tl { #1 }
   }
 
 % ---------------------------------------------------------------------------
@@ -166,6 +189,7 @@
   {
     \group_begin:
       \SDlayoutcompact
+      \keys_set:nV { stepdiff / env } \g__stepdiff_setup_tl
       \keys_set:nn { stepdiff / env } { #1 }
       \directlua{stepdiff.begin()}
   }
@@ -177,17 +201,25 @@
 % ---------------------------------------------------------------------------
 % \step definition
 % ---------------------------------------------------------------------------
-\NewDocumentCommand{\step}{ O{} m }
+\NewDocumentCommand{\step}{ d<> O{} m }
   {
     \group_begin:
+      \tl_clear:N \l__stepdiff_overlay_tl
+      \IfNoValueF { #1 }
+        {
+          \ifSDbeamer
+            \tl_set:Nn \l__stepdiff_overlay_tl { #1 }
+          \fi
+        }
       \tl_clear:N \l__stepdiff_reason_tl
       \tl_set:Nn \l__stepdiff_diff_tl { auto }
-      \keys_set:nn { stepdiff / step } { #1 }
+      \keys_set:nn { stepdiff / step } { #2 }
       \directlua{
         stepdiff.add(
-          "\luaescapestring{\detokenize{#2}}",
+          "\luaescapestring{\detokenize{#3}}",
           "\luaescapestring{\tl_use:N \l__stepdiff_reason_tl}",
-          "\luaescapestring{\tl_use:N \l__stepdiff_diff_tl}"
+          "\luaescapestring{\tl_use:N \l__stepdiff_diff_tl}",
+          "\luaescapestring{\tl_use:N \l__stepdiff_overlay_tl}"
         )
       }
     \group_end:

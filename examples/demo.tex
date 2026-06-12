@@ -4,9 +4,11 @@
 \usepackage{xcolor}
 \usepackage{stepdiff}
 
-\title{stepdiff v0.5.0 Demo}
+\title{stepdiff v1.0.0-rc1 Demo}
 \author{}
 \date{}
+
+\stepdiffsetup{theme=soft, layout=lecture, highlight=background}
 
 \begin{document}
 
@@ -17,56 +19,44 @@
 \[
 \begin{stepdiff}
 \step{a(x+b)}
-\step[reason={distribute a}]{ax + ab}
+\step[reason={distribute}]{ax + ab}
 \step[reason={commute terms}]{ab + ax}
 \end{stepdiff}
 \]
 
-\section*{Sum formula derivation}
+\section*{Relation-aware derivation}
 
 \[
 \begin{stepdiff}
-\step{S_n = 1 + 2 + \cdots + n}
-\step[reason={reverse the sum}]{S_n = n + (n-1) + \cdots + 1}
-\step[reason={add both expressions}]{2S_n = (n+1) + (n+1) + \cdots + (n+1)}
-\step[reason={there are n terms}]{2S_n = n(n+1)}
-\step[reason={divide by 2}]{S_n = \frac{n(n+1)}{2}}
+\step{a_n \le b_n}
+\step[reason={take limits}]{\lim a_n \le \lim b_n}
+\step[reason={conclude}, diff=all]{L \le M}
 \end{stepdiff}
 \]
 
-\section*{Simple derivative derivation}
+\section*{Derivative calculation}
 
 \[
-\begin{stepdiff}
+\begin{stepdiff}[layout=compact]
 \step{f(x) = x^3 + 2x}
-\step[reason={differentiate term by term}]{f'(x) = 3x^2 + 2}
+\step[reason={differentiate}]{f'(x) = 3x^2 + 2}
 \step[reason={evaluate at x=2}]{f'(2) = 3\cdot 2^2 + 2}
 \step[reason={simplify}]{f'(2) = 14}
 \end{stepdiff}
 \]
 
-
-\section*{Logarithmic differentiation}
-
-\[
-\begin{stepdiff}
-\step{y = x^{\sqrt{x}}}
-\step[reason={take logarithms}]{\log y = \sqrt{x}\log x}
-\step[reason={differentiate implicitly}]{\frac{y'}{y} = \frac{1}{2\sqrt{x}}\log x + \frac{1}{\sqrt{x}}}
-\end{stepdiff}
-\]
-
-
 \section*{Manual control}
 
 \[
-\begin{stepdiff}
+\begin{stepdiff}[theme=minimal, highlight=underline]
 \step{x^2 - 1 = (x-1)(x+1)}
 \step[reason={automatic diff}, diff=auto]{x^2 - 1 = x^2 - 1}
 \step[reason={suppress noisy highlight}, diff=false]{x^2 - 1 = x^2 - 1}
-\step[reason={important identity}, diff=all]{x^2 - 1 = (x-1)(x+1)}
+\step[reason={emphasize identity}, diff=all]{x^2 - 1 = (x-1)(x+1)}
 \end{stepdiff}
 \]
+
+\section*{Customization hook}
 
 \begingroup
 \renewcommand{\SDchanged}[1]{\begingroup\color{red!70!black}#1\endgroup}

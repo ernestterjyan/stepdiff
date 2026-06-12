@@ -1,5 +1,5 @@
 -- stepdiff.lua
--- stepdiff v0.5.0
+-- Version: 1.0.0-rc1
 -- Author: Ernest Terjyan
 -- Description: LuaLaTeX package for step-by-step derivations with visual diffing.
 -- License: MIT
@@ -475,15 +475,17 @@ local function render_reason(reason)
   return "\\SDmaybereason{" .. reason .. "}"
 end
 
-local function make_step(math, reason, diff_mode)
+local function make_step(math, reason, diff_mode, overlay)
   math = strip_tex_sentinels(math)
   reason = strip_tex_sentinels(reason)
+  overlay = strip_tex_sentinels(overlay or "")
   diff_mode = normalize_diff_mode(diff_mode or "auto")
 
   return {
     math = math,
     reason = reason,
     diff_mode = diff_mode,
+    overlay = overlay,
     tokens = tokenize(math)
   }
 end
@@ -502,7 +504,7 @@ local function select_render_range(diff_mode)
   return render_token_range
 end
 
-local function render_step_body(prev_step, step)
+local function render_step_cells(prev_step, step)
   local matched = nil
   if prev_step ~= nil and step.diff_mode == "auto" then
     matched = lcs_matches(prev_step.tokens, step.tokens)
@@ -530,11 +532,33 @@ local function render_step_body(prev_step, step)
     if step.diff_mode == "all" then
       relation = "\\SDchanged{" .. relation_text .. "}"
     end
-    return lhs .. " & " .. relation .. " " .. rhs
+    return lhs, relation .. " " .. rhs
   end
 
-  return render_range(step.tokens, 1, #step.tokens, matched, alignment_index)
-    .. " & {}"
+  return render_range(step.tokens, 1, #step.tokens, matched, alignment_index), "{}"
+end
+
+local function render_step_body(prev_step, step)
+  local left, right = render_step_cells(prev_step, step)
+  return left .. " & " .. right
+end
+
+local function with_overlay(text, overlay)
+  overlay = strip_tex_sentinels(overlay or "")
+  if overlay == "" then
+    return text
+  end
+  return "\\onslide<" .. overlay .. ">{" .. text .. "}"
+end
+
+local function render_step_row(prev_step, step)
+  local left, right = render_step_cells(prev_step, step)
+  local reason = render_reason(step.reason)
+  local overlay = step.overlay or ""
+
+  return with_overlay(left, overlay)
+    .. " & " .. with_overlay(right, overlay)
+    .. " && " .. with_overlay(reason, overlay)
 end
 
 local function render_latex(step_list)
@@ -543,8 +567,7 @@ local function render_latex(step_list)
   rows[#rows + 1] = "\\begin{aligned}"
 
   for i, step in ipairs(step_list) do
-    local body = render_step_body(step_list[i - 1], step)
-    rows[#rows + 1] = body .. " && " .. render_reason(step.reason)
+    rows[#rows + 1] = render_step_row(step_list[i - 1], step)
 
     if i < #step_list then
       rows[#rows + 1] = "\\\\"
@@ -564,8 +587,8 @@ function M.begin()
   steps = {}
 end
 
-function M.add(math, reason, diff_mode)
-  steps[#steps + 1] = make_step(math, reason, diff_mode)
+function M.add(math, reason, diff_mode, overlay)
+  steps[#steps + 1] = make_step(math, reason, diff_mode, overlay)
 end
 
 function M.render()
@@ -582,7 +605,10 @@ M._test = {
   is_relation_token = is_relation_token,
   find_alignment_relation = find_alignment_relation,
   make_step = make_step,
+  render_step_cells = render_step_cells,
   render_step_body = render_step_body,
+  with_overlay = with_overlay,
+  render_step_row = render_step_row,
   render_latex = render_latex,
   render_pair = function(prev_math, curr_math, diff_mode)
     local prev_step = nil
@@ -592,6 +618,15 @@ M._test = {
 
     local step = make_step(curr_math, "", diff_mode or "auto")
     return render_step_body(prev_step, step)
+  end,
+  render_overlay_pair = function(prev_math, curr_math, overlay)
+    local prev_step = nil
+    if prev_math ~= nil then
+      prev_step = make_step(prev_math, "", "auto")
+    end
+
+    local step = make_step(curr_math, "shown", "auto", overlay)
+    return render_step_row(prev_step, step)
   end
 }
 

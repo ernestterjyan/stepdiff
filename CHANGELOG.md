@@ -1,6 +1,23 @@
 # Changelog
 
-## 0.5.0 - Unreleased
+## 1.0.0-rc1 - Unreleased
+
+### Added
+- Basic Beamer overlay support for `\step<...>{...}`.
+- Global setup command `\stepdiffsetup{...}`.
+- Additional examples for Beamer overlays and global configuration.
+- Expanded compilation tests.
+- Expanded documentation for the stable public API.
+
+### Improved
+- Documentation structure for first stable release.
+- Test coverage for examples and package options.
+- Release checklist for v1.0.
+
+### Notes
+`stepdiff` remains a visual token-level diffing package. It does not check mathematical correctness, does not use a CAS, and does not understand transformations semantically.
+
+## 0.5.0 - Visual styles
 
 - Added visual themes.
 - Added highlight modes.

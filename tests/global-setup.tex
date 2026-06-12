@@ -1,0 +1,39 @@
+\documentclass{article}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+
+\stepdiffsetup{theme=minimal, layout=wide, highlight=underline}
+
+\begin{document}
+
+\[
+\begin{stepdiff}
+\step{x^2-1=(x-1)(x+1)}
+\step[reason={expand}]{x^2-1=x^2-1}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[theme=soft, layout=compact, highlight=background]
+\step{a=b}
+\step[reason={local options override setup}]{a=c}
+\end{stepdiff}
+\]
+
+\stepdiffsetup{theme=soft, highlight=color, show-reasons=false}
+
+\[
+\begin{stepdiff}
+\step{p=q}
+\step[reason={hidden by setup}]{p=r}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[show-reasons=true]
+\step{u=v}
+\step[reason={shown locally}]{u=w}
+\end{stepdiff}
+\]
+
+\end{document}

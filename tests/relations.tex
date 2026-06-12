@@ -1,0 +1,37 @@
+\documentclass{article}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+\begin{document}
+
+\[
+\begin{stepdiff}
+\step{x+1 = 2}
+\step[reason={subtract 1}]{x = 1}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}
+\step{a_n \le b_n}
+\step[reason={take limits}]{\lim a_n \le \lim b_n}
+\step[reason={conclude}]{L \le M}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}
+\step{P \Rightarrow Q}
+\step[reason={strengthen hypothesis}]{P \wedge R \Rightarrow Q}
+\step[reason={iterate}]{P \wedge R \Longrightarrow Q}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}
+\step{x < y = z}
+\step[reason={estimate}]{x \approx y}
+\step[reason={identify}]{x \equiv y}
+\end{stepdiff}
+\]
+
+\end{document}

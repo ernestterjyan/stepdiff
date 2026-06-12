@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.3.0 - Unreleased
+## 0.4.0 - Unreleased
+
+- Added relation-aware alignment.
+- Added support for aligning at common relation symbols such as `=`, `\le`, `\ge`, `\approx`, `\equiv`, and `\Rightarrow`.
+- Added relation-alignment examples and tests.
+
+## 0.3.0 - Lua-side tests
 
 - Added Lua-side tests for tokenizer behavior.
 - Added Lua-side tests for diff rendering.

@@ -45,6 +45,12 @@ Version 0.3.0 starts adding Lua-side unit tests for the tokenizer and visual dif
 
 These tests are still about visual reliability, not mathematical meaning. They check that common LaTeX math atoms stay coherent and that changed chunks render as valid LaTeX-like output with `\SDchanged{...}` where expected.
 
+## v0.4.0 Relation Alignment Direction
+
+Version 0.4.0 adds relation-aware alignment while keeping the implementation token-based. After tokenization, `stepdiff` scans the top-level token list for the first recognized relation token, such as `=`, `\le`, `\ge`, `\approx`, `\equiv`, or `\Rightarrow`, and uses that token as the alignment point.
+
+This deliberately depends on tokenizer boundaries. Braced groups, fractions, roots, and parenthesized atoms are normally kept as single tokens, so relation-like text inside those atoms is not treated as an alignment target. That keeps the detector conservative and avoids splitting inside common LaTeX constructs.
+
 ## Styles and Presentations
 
 The package now includes basic style controls such as `style=highlight` and `style=underline`. The underline style is useful when background colors do not print well or when a Beamer theme already uses strong colors.
@@ -53,7 +59,7 @@ Beamer support is still basic: `stepdiff` can be used inside a frame, but overla
 
 ## Future Ideas
 
-- A better math atom tokenizer for scripts, fractions, roots, delimiters, and common operator forms.
+- Continue improving the math atom tokenizer for scripts, fractions, roots, delimiters, relation tokens, and common operator forms.
 - Optional semantic mode for users who want deeper checking or CAS integration.
 - Better color themes for print, dark-on-light lecture notes, and projector slides.
 - Beamer support, including overlays for revealing derivation steps.

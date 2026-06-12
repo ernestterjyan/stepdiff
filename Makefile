@@ -1,7 +1,7 @@
 .PHONY: demo examples test lua-test clean
 
-EXAMPLES := $(wildcard examples/*.tex)
-TESTS := $(wildcard tests/*.tex)
+EXAMPLES := $(sort $(wildcard examples/*.tex))
+TESTS := $(sort $(wildcard tests/*.tex))
 
 AUX_EXTENSIONS := \
 	aux \

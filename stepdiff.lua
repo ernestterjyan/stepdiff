@@ -323,6 +323,23 @@ local bridge_tokens = {
   ["]"] = true
 }
 
+local relation_tokens = {
+  ["="] = true,
+  ["\\le"] = true,
+  ["\\ge"] = true,
+  ["<"] = true,
+  [">"] = true,
+  ["\\approx"] = true,
+  ["\\sim"] = true,
+  ["\\equiv"] = true,
+  ["\\Rightarrow"] = true,
+  ["\\Longrightarrow"] = true
+}
+
+local function is_relation_token(text)
+  return relation_tokens[text] == true
+end
+
 local function normalize_diff_mode(mode)
   mode = strip_tex_sentinels(mode):lower():gsub("^%s+", ""):gsub("%s+$", "")
   if mode == "false" or mode == "none" then
@@ -333,13 +350,14 @@ local function normalize_diff_mode(mode)
   return "auto"
 end
 
-local function find_alignment_index(tokens)
+local function find_alignment_relation(tokens)
   for i, token in ipairs(tokens) do
-    if token.text == "=" then
-      return i
+    if is_relation_token(token.text) then
+      return i, token.text
     end
   end
-  return nil
+
+  return nil, nil
 end
 
 local function should_highlight_token(index, token, matched, alignment_index)
@@ -347,8 +365,8 @@ local function should_highlight_token(index, token, matched, alignment_index)
     return false
   end
 
-  -- The first equals sign is structural: it is used for alignment.
-  if alignment_index == index and token.text == "=" then
+  -- The first recognized relation is structural: it is used for alignment.
+  if alignment_index == index and is_relation_token(token.text) then
     return false
   end
 
@@ -490,7 +508,7 @@ local function render_step_body(prev_step, step)
     matched = lcs_matches(prev_step.tokens, step.tokens)
   end
 
-  local alignment_index = find_alignment_index(step.tokens)
+  local alignment_index, relation_text = find_alignment_relation(step.tokens)
   local render_range = select_render_range(step.diff_mode)
 
   if alignment_index ~= nil then
@@ -508,9 +526,9 @@ local function render_step_body(prev_step, step)
       matched,
       alignment_index
     )
-    local relation = "="
+    local relation = relation_text
     if step.diff_mode == "all" then
-      relation = "\\SDchanged{=}"
+      relation = "\\SDchanged{" .. relation_text .. "}"
     end
     return lhs .. " & " .. relation .. " " .. rhs
   end
@@ -561,6 +579,8 @@ M._test = {
   tokenize = tokenize,
   lcs_matches = lcs_matches,
   normalize_diff_mode = normalize_diff_mode,
+  is_relation_token = is_relation_token,
+  find_alignment_relation = find_alignment_relation,
   make_step = make_step,
   render_step_body = render_step_body,
   render_latex = render_latex,

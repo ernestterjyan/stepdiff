@@ -6,7 +6,7 @@ LuaLaTeX is required. `stepdiff` uses Lua for tokenization and diffing, so it wi
 
 ## Status
 
-Current released version: v0.2.0 MVP. Development has started for v0.3.0.
+Current released version: v0.3.0. Development has started for v0.4.0.
 
 `stepdiff` is usable for simple derivations, examples, and experimentation, but it is not yet a full CTAN-ready package.
 
@@ -16,7 +16,7 @@ Current released version: v0.2.0 MVP. Development has started for v0.3.0.
 
 - Provides a `stepdiff` math environment and a `\step` command.
 - Typesets derivations as aligned display math.
-- Aligns each step at the first literal `=` when one is present.
+- Aligns each step at the first recognized relation symbol when one is present.
 - Compares each step to the previous step with token-level visual diffing.
 - Uses a math-atom tokenizer for common constructs such as scripts, fractions, roots, function calls, dots, and parenthesized atoms.
 - Highlights changed chunks using `\SDchanged{...}`.
@@ -79,11 +79,12 @@ under `docs/assets/` later.
 \end{document}
 ```
 
-Lines containing `=` are aligned at the first equals sign. Reasons are placed in a separate annotation column, visually similar to:
+Lines containing a recognized relation are aligned at the first relation symbol. The supported relation targets currently include `=`, `\le`, `\ge`, `<`, `>`, `\approx`, `\sim`, `\equiv`, `\Rightarrow`, and `\Longrightarrow`. Reasons are placed in a separate annotation column, visually similar to:
 
 ```latex
 \begin{aligned}
 left & = right && \text{reason}
+left & \le right && \text{reason}
 \end{aligned}
 ```
 
@@ -155,6 +156,7 @@ The repository includes:
 - `examples/algebra.tex`: expansion and factorization examples.
 - `examples/calculus.tex`: derivative and logarithmic differentiation examples.
 - `examples/manual-control.tex`: diff modes and customization examples.
+- `examples/relations.tex`: relation-alignment examples.
 - `examples/beamer-demo.tex`: minimal Beamer frame using `stepdiff`.
 
 Compile one example directly from the repository root:
@@ -191,13 +193,12 @@ make lua-test
 - Removed tokens are not shown because only the current line is rendered.
 - Complex LaTeX macros may not always be highlighted perfectly.
 - Commands with braced arguments, such as `\frac{...}{...}`, are usually kept as one token to avoid invalid highlighted output.
-- Alignment currently uses only the first literal `=` in each step.
-- Relation symbols such as `\le`, `\ge`, and `\approx` are not yet alignment targets.
+- Alignment currently uses the first recognized top-level relation token in each step.
+- Relation detection is conservative and token-based; unsupported relation macros are not alignment targets until added explicitly.
 
 ## Roadmap
 
 - Continue improving the math atom tokenizer for more macros and delimiter patterns.
-- Add relation-aware alignment for symbols such as `\le`, `\ge`, and `\approx`.
 - Add more built-in color themes for lecture notes, print, and slides.
 - Improve Beamer overlay support for revealing derivation steps incrementally.
 - Add more robust examples and package tests.

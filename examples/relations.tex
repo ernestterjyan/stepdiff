@@ -1,0 +1,60 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+
+\title{stepdiff Relation Alignment Examples}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Inequalities}
+
+\[
+\begin{stepdiff}
+\step{a_n \le b_n}
+\step[reason={take limits}]{\lim a_n \le \lim b_n}
+\step[reason={conclude}]{L \le M}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}
+\step{x > 0}
+\step[reason={square both sides}]{x^2 > 0}
+\step[reason={weaken}]{x^2 \ge 0}
+\end{stepdiff}
+\]
+
+\section*{Approximations and equivalences}
+
+\[
+\begin{stepdiff}
+\step{\sin x \sim x}
+\step[reason={small-angle approximation}]{\sin x \approx x}
+\step[reason={at x=0}]{\sin 0 = 0}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}
+\step{n \equiv 1 \pmod 2}
+\step[reason={write n as odd}]{n = 2k+1}
+\end{stepdiff}
+\]
+
+\section*{Implications}
+
+\[
+\begin{stepdiff}
+\step{P \Rightarrow Q}
+\step[reason={add hypothesis}]{P \wedge R \Rightarrow Q}
+\step[reason={chain implication}]{P \wedge R \Longrightarrow S}
+\end{stepdiff}
+\]
+
+\end{document}

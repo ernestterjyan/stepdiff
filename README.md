@@ -4,6 +4,12 @@
 
 LuaLaTeX is required. `stepdiff` uses Lua for tokenization and diffing, so it will not work with pdfLaTeX.
 
+## Status
+
+Current version: v0.2.0 MVP.
+
+`stepdiff` is usable for simple derivations, examples, and experimentation, but it is not yet a full CTAN-ready package.
+
 ## What it does
 
 - Provides a `stepdiff` math environment and a `\step` command.
@@ -47,6 +53,8 @@ make test
 ```
 
 Generated PDFs are ignored by Git. Rebuild them locally with the Makefile.
+Rendered screenshots are not generated automatically, but they can be added
+under `docs/assets/` later.
 
 ## Minimal example
 
@@ -81,7 +89,7 @@ left & = right && \text{reason}
 A screenshot or rendered demo image can be added here later, for example:
 
 ```markdown
-![stepdiff demo](docs/demo.png)
+![stepdiff demo](docs/assets/demo.png)
 ```
 
 For now, run `make examples` and open the generated PDFs in `examples/`.

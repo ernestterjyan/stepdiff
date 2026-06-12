@@ -3,6 +3,23 @@
 EXAMPLES := $(wildcard examples/*.tex)
 TESTS := $(wildcard tests/*.tex)
 
+AUX_EXTENSIONS := \
+	aux \
+	log \
+	out \
+	toc \
+	synctex.gz \
+	fls \
+	fdb_latexmk \
+	nav \
+	snm \
+	vrb \
+	pdf
+
+ROOT_CLEAN_FILES := $(foreach ext,$(AUX_EXTENSIONS),*.$(ext))
+EXAMPLE_CLEAN_FILES := $(foreach ext,$(AUX_EXTENSIONS),examples/*.$(ext))
+TEST_CLEAN_FILES := $(foreach ext,$(AUX_EXTENSIONS),tests/*.$(ext))
+
 demo:
 	lualatex -output-directory=examples examples/demo.tex
 
@@ -19,6 +36,6 @@ test:
 	done
 
 clean:
-	rm -f *.aux *.log *.out *.toc *.synctex.gz *.fls *.fdb_latexmk *.pdf
-	rm -f examples/*.aux examples/*.log examples/*.out examples/*.toc examples/*.synctex.gz examples/*.fls examples/*.fdb_latexmk examples/*.nav examples/*.snm examples/*.vrb examples/*.pdf
-	rm -f tests/*.aux tests/*.log tests/*.out tests/*.toc tests/*.synctex.gz tests/*.fls tests/*.fdb_latexmk tests/*.nav tests/*.snm tests/*.vrb tests/*.pdf
+	rm -f $(ROOT_CLEAN_FILES)
+	rm -f $(EXAMPLE_CLEAN_FILES)
+	rm -f $(TEST_CLEAN_FILES)

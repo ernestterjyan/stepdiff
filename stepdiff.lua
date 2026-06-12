@@ -10,8 +10,11 @@
 -- algorithm, and wraps changed tokens from the current line in \SDchanged{...}.
 
 local M = {}
-
 local steps = {}
+
+-- ---------------------------------------------------------------------------
+-- Helpers
+-- ---------------------------------------------------------------------------
 
 local function strip_tex_sentinels(s)
   -- tex.sprint inserts literal newlines as ordinary character tokens in math
@@ -30,6 +33,10 @@ end
 local function is_digit(c)
   return c:match("%d") ~= nil
 end
+
+-- ---------------------------------------------------------------------------
+-- Tokenizer
+-- ---------------------------------------------------------------------------
 
 local command_group_counts = {
   ["\\frac"] = 2,
@@ -247,6 +254,10 @@ local function tokenize(s)
   return tokens
 end
 
+-- ---------------------------------------------------------------------------
+-- LCS diffing
+-- ---------------------------------------------------------------------------
+
 local function lcs_matches(prev, curr)
   local n = #prev
   local m = #curr
@@ -288,14 +299,28 @@ local function lcs_matches(prev, curr)
   return matched_curr
 end
 
+-- ---------------------------------------------------------------------------
+-- Rendering
+-- ---------------------------------------------------------------------------
+
 local weak_tokens = {
-  ["+"] = true, ["-"] = true, ["("] = true, [")"] = true,
-  ["["] = true, ["]"] = true, [","] = true, [";"] = true
+  ["+"] = true,
+  ["-"] = true,
+  ["("] = true,
+  [")"] = true,
+  ["["] = true,
+  ["]"] = true,
+  [","] = true,
+  [";"] = true
 }
 
 local bridge_tokens = {
-  ["+"] = true, ["-"] = true, ["("] = true, [")"] = true,
-  ["["] = true, ["]"] = true
+  ["+"] = true,
+  ["-"] = true,
+  ["("] = true,
+  [")"] = true,
+  ["["] = true,
+  ["]"] = true
 }
 
 local function normalize_diff_mode(mode)
@@ -373,7 +398,13 @@ local function render_all_range(tokens, first_index, last_index)
   return "\\SDchanged{" .. plain .. "}"
 end
 
-local function build_highlight_flags(tokens, first_index, last_index, matched, alignment_index)
+local function build_highlight_flags(
+  tokens,
+  first_index,
+  last_index,
+  matched,
+  alignment_index
+)
   local flags = {}
 
   for i = first_index, last_index do
@@ -384,7 +415,12 @@ local function build_highlight_flags(tokens, first_index, last_index, matched, a
   -- in the same visual chunk. This stays textual: it does not infer meaning.
   for i = first_index + 1, last_index - 1 do
     local token = tokens[i]
-    if not flags[i] and bridge_tokens[token.text] and flags[i - 1] and flags[i + 1] then
+    if
+      not flags[i]
+      and bridge_tokens[token.text]
+      and flags[i - 1]
+      and flags[i + 1]
+    then
       flags[i] = true
     end
   end
@@ -420,6 +456,10 @@ local function render_reason(reason)
   end
   return "\\SDmaybereason{" .. reason .. "}"
 end
+
+-- ---------------------------------------------------------------------------
+-- Public API
+-- ---------------------------------------------------------------------------
 
 function M.begin()
   steps = {}
@@ -464,15 +504,29 @@ function M.render()
     end
 
     if alignment_index ~= nil then
-      local lhs = render_range(step.tokens, 1, alignment_index - 1, matched, alignment_index)
-      local rhs = render_range(step.tokens, alignment_index + 1, #step.tokens, matched, alignment_index)
+      local lhs = render_range(
+        step.tokens,
+        1,
+        alignment_index - 1,
+        matched,
+        alignment_index
+      )
+      local rhs = render_range(
+        step.tokens,
+        alignment_index + 1,
+        #step.tokens,
+        matched,
+        alignment_index
+      )
       local relation = "="
       if step.diff_mode == "all" then
         relation = "\\SDchanged{=}"
       end
       body = lhs .. " & " .. relation .. " " .. rhs
     else
-      body = render_range(step.tokens, 1, #step.tokens, matched, alignment_index) .. " & {}"
+      body =
+        render_range(step.tokens, 1, #step.tokens, matched, alignment_index)
+        .. " & {}"
     end
 
     rows[#rows + 1] = body .. " && " .. render_reason(step.reason)

@@ -2,15 +2,25 @@
 % Author: Ernest Terjyan
 % Description: LuaLaTeX package for step-by-step derivations with visual diffing.
 % License: MIT
-\NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{stepdiff}[2026/06/11 v0.2.0 Token-level diffs for step-by-step derivations]
 
+% ---------------------------------------------------------------------------
+% Package metadata
+% ---------------------------------------------------------------------------
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{stepdiff}
+  [2026/06/11 v0.2.0 Token-level diffs for step-by-step derivations]
+
+% ---------------------------------------------------------------------------
+% Required packages
+% ---------------------------------------------------------------------------
 \RequirePackage{amsmath}
 \RequirePackage{xcolor}
 \RequirePackage{xparse}
 
-% User-facing customization hooks.
-% Redefine these in the document preamble to change the visual style.
+% ---------------------------------------------------------------------------
+% User customization hooks
+% ---------------------------------------------------------------------------
+% Redefine these commands in the document preamble to change the visual style.
 \providecommand{\SDchanged}[1]{%
   \begingroup
   \setlength{\fboxsep}{1pt}%
@@ -28,8 +38,17 @@
 \SDshowreasonstrue
 \providecommand{\SDhidereasons}{\SDshowreasonsfalse}
 \providecommand{\SDshowreasons}{\SDshowreasonstrue}
-\providecommand{\SDmaybereason}[1]{\ifSDshowreasons\text{\SDreason{#1}}\else{}\fi}
+\providecommand{\SDmaybereason}[1]{%
+  \ifSDshowreasons
+    \text{\SDreason{#1}}%
+  \else
+    {}%
+  \fi
+}
 
+% ---------------------------------------------------------------------------
+% Styles
+% ---------------------------------------------------------------------------
 \newcommand{\SDstylehighlight}{%
   \renewcommand{\SDchanged}[1]{%
     \begingroup
@@ -43,11 +62,22 @@
   }%
 }
 \newcommand{\SDstyleunderline}{%
-  \renewcommand{\SDchanged}[1]{\begingroup\color{red!70!black}\underline{##1}\endgroup}%
+  \renewcommand{\SDchanged}[1]{%
+    \begingroup
+    \color{red!70!black}%
+    \underline{##1}%
+    \endgroup
+  }%
 }
 
+% ---------------------------------------------------------------------------
+% Lua loading
+% ---------------------------------------------------------------------------
 \directlua{stepdiff = require("stepdiff")}
 
+% ---------------------------------------------------------------------------
+% expl3 keys
+% ---------------------------------------------------------------------------
 \ExplSyntaxOn
 
 \tl_new:N \l__stepdiff_reason_tl
@@ -68,6 +98,9 @@
     style / underline .code:n = { \SDstyleunderline }
   }
 
+% ---------------------------------------------------------------------------
+% Environment definition
+% ---------------------------------------------------------------------------
 \NewDocumentEnvironment{stepdiff}{ O{} }
   {
     \group_begin:
@@ -79,6 +112,9 @@
     \group_end:
   }
 
+% ---------------------------------------------------------------------------
+% \step definition
+% ---------------------------------------------------------------------------
 \NewDocumentCommand{\step}{ O{} m }
   {
     \group_begin:

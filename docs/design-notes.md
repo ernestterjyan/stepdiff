@@ -51,9 +51,17 @@ Version 0.4.0 adds relation-aware alignment while keeping the implementation tok
 
 This deliberately depends on tokenizer boundaries. Braced groups, fractions, roots, and parenthesized atoms are normally kept as single tokens, so relation-like text inside those atoms is not treated as an alignment target. That keeps the detector conservative and avoids splitting inside common LaTeX constructs.
 
+## v0.5.0 Visual Presentation Direction
+
+Version 0.5.0 focuses on TeX-side presentation controls rather than new math behavior. Themes, highlight modes, and layout modes change how existing visual diffs are displayed while leaving tokenization and relation-aware alignment conceptually unchanged.
+
+The styling layer remains deliberately small: `\SDchanged{...}` controls changed math chunks, `\SDreason{...}` controls reason text, and layout options adjust row spacing and the reason-column separation. These hooks stay customizable so authors can adapt the package to lecture notes, print handouts, or house styles.
+
+Final-step emphasis is still handled through existing diff controls, especially `diff=all`. A dedicated `tag=final` option may be added later if it can be done without complicating row rendering.
+
 ## Styles and Presentations
 
-The package now includes basic style controls such as `style=highlight` and `style=underline`. The underline style is useful when background colors do not print well or when a Beamer theme already uses strong colors.
+The package includes style controls such as `theme=soft`, `theme=minimal`, `highlight=background`, `highlight=underline`, `highlight=color`, `highlight=none`, and layout modes for compact, lecture, and wide spacing. The older `style=highlight` and `style=underline` aliases remain available for compatibility.
 
 Beamer support is still basic: `stepdiff` can be used inside a frame, but overlay-aware step reveals are a future goal.
 
@@ -61,6 +69,6 @@ Beamer support is still basic: `stepdiff` can be used inside a frame, but overla
 
 - Continue improving the math atom tokenizer for scripts, fractions, roots, delimiters, relation tokens, and common operator forms.
 - Optional semantic mode for users who want deeper checking or CAS integration.
-- Better color themes for print, dark-on-light lecture notes, and projector slides.
+- More refined theme presets for print, dark-on-light lecture notes, and projector slides.
 - Beamer support, including overlays for revealing derivation steps.
 - More robust test documents that cover common LaTeX math constructs.

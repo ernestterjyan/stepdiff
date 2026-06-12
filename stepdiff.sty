@@ -1,4 +1,4 @@
-% stepdiff v0.2.0
+% stepdiff v0.5.0
 % Author: Ernest Terjyan
 % Description: LuaLaTeX package for step-by-step derivations with visual diffing.
 % License: MIT
@@ -8,7 +8,7 @@
 % ---------------------------------------------------------------------------
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{stepdiff}
-  [2026/06/11 v0.2.0 Token-level diffs for step-by-step derivations]
+  [2026/06/13 v0.5.0 Token-level diffs for step-by-step derivations]
 
 % ---------------------------------------------------------------------------
 % Required packages
@@ -32,24 +32,25 @@
   \endgroup
 }
 \providecommand{\SDreason}[1]{%
-  \normalfont\scriptsize\itshape\color{black!60}#1%
+  \normalfont\scriptsize\itshape\color{black!55}#1%
 }
+\providecommand{\SDreasonsep}{\quad}
 \newif\ifSDshowreasons
 \SDshowreasonstrue
 \providecommand{\SDhidereasons}{\SDshowreasonsfalse}
 \providecommand{\SDshowreasons}{\SDshowreasonstrue}
 \providecommand{\SDmaybereason}[1]{%
   \ifSDshowreasons
-    \text{\SDreason{#1}}%
+    \SDreasonsep\text{\SDreason{#1}}%
   \else
     {}%
   \fi
 }
 
 % ---------------------------------------------------------------------------
-% Styles
+% Highlight modes
 % ---------------------------------------------------------------------------
-\newcommand{\SDstylehighlight}{%
+\newcommand{\SDhighlightbackground}{%
   \renewcommand{\SDchanged}[1]{%
     \begingroup
     \setlength{\fboxsep}{1pt}%
@@ -61,14 +62,62 @@
     \endgroup
   }%
 }
-\newcommand{\SDstyleunderline}{%
+\newcommand{\SDhighlightunderline}{%
   \renewcommand{\SDchanged}[1]{%
     \begingroup
-    \color{red!70!black}%
     \underline{##1}%
     \endgroup
   }%
 }
+\newcommand{\SDhighlightcolor}{%
+  \renewcommand{\SDchanged}[1]{%
+    \begingroup
+    \color{blue!60!black}%
+    ##1%
+    \endgroup
+  }%
+}
+\newcommand{\SDhighlightnone}{%
+  \renewcommand{\SDchanged}[1]{##1}%
+}
+
+% ---------------------------------------------------------------------------
+% Themes
+% ---------------------------------------------------------------------------
+\newcommand{\SDthemesoft}{%
+  \SDhighlightbackground
+  \renewcommand{\SDreason}[1]{%
+    \normalfont\scriptsize\itshape\color{black!55}##1%
+  }%
+}
+\newcommand{\SDthememinimal}{%
+  \SDhighlightunderline
+  \renewcommand{\SDreason}[1]{%
+    \normalfont\scriptsize\itshape\color{black!65}##1%
+  }%
+}
+
+% ---------------------------------------------------------------------------
+% Layout modes
+% ---------------------------------------------------------------------------
+\newcommand{\SDlayoutcompact}{%
+  \setlength{\jot}{3pt}%
+  \renewcommand{\SDreasonsep}{\quad}%
+}
+\newcommand{\SDlayoutlecture}{%
+  \setlength{\jot}{6pt}%
+  \renewcommand{\SDreasonsep}{\qquad}%
+}
+\newcommand{\SDlayoutwide}{%
+  \setlength{\jot}{4pt}%
+  \renewcommand{\SDreasonsep}{\hspace{3em}}%
+}
+
+% ---------------------------------------------------------------------------
+% Legacy style aliases
+% ---------------------------------------------------------------------------
+\newcommand{\SDstylehighlight}{\SDhighlightbackground}
+\newcommand{\SDstyleunderline}{\SDhighlightunderline}
 
 % ---------------------------------------------------------------------------
 % Lua loading
@@ -93,6 +142,18 @@
 
 \keys_define:nn { stepdiff / env }
   {
+    theme .choice:,
+    theme / soft .code:n = { \SDthemesoft },
+    theme / minimal .code:n = { \SDthememinimal },
+    layout .choice:,
+    layout / compact .code:n = { \SDlayoutcompact },
+    layout / lecture .code:n = { \SDlayoutlecture },
+    layout / wide .code:n = { \SDlayoutwide },
+    highlight .choice:,
+    highlight / background .code:n = { \SDhighlightbackground },
+    highlight / underline .code:n = { \SDhighlightunderline },
+    highlight / color .code:n = { \SDhighlightcolor },
+    highlight / none .code:n = { \SDhighlightnone },
     style .choice:,
     style / highlight .code:n = { \SDstylehighlight },
     style / underline .code:n = { \SDstyleunderline }
@@ -104,6 +165,7 @@
 \NewDocumentEnvironment{stepdiff}{ O{} }
   {
     \group_begin:
+      \SDlayoutcompact
       \keys_set:nn { stepdiff / env } { #1 }
       \directlua{stepdiff.begin()}
   }

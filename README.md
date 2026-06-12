@@ -6,7 +6,7 @@ LuaLaTeX is required. `stepdiff` uses Lua for tokenization and diffing, so it wi
 
 ## Status
 
-Current released version: v0.3.0. Development has started for v0.4.0.
+Current released version: v0.4.0. Development has started for v0.5.0.
 
 `stepdiff` is usable for simple derivations, examples, and experimentation, but it is not yet a full CTAN-ready package.
 
@@ -22,6 +22,7 @@ Current released version: v0.3.0. Development has started for v0.4.0.
 - Highlights changed chunks using `\SDchanged{...}`.
 - Places optional `reason={...}` annotations in a separate right-hand column.
 - Provides manual controls for noisy cases: `diff=auto`, `diff=false`, `diff=none`, and `diff=all`.
+- Provides visual options for themes, highlight modes, and layout spacing.
 
 ## What it does not do
 
@@ -116,6 +117,39 @@ Automatic token-level diffing is approximate, so each step can choose a diff mod
 
 Use `diff=false` when automatic highlighting is noisy. Use `diff=all` when an important step should be emphasized as a whole.
 
+## Visual styles
+
+Visual options are set on the `stepdiff` environment. The default remains close to the original compact yellow highlight style.
+
+```latex
+\begin{stepdiff}[theme=soft, layout=lecture, highlight=background]
+\step{S_n = 1 + 2 + \cdots + n}
+\step[reason={pair terms}]{2S_n = n(n+1)}
+\step[reason={final formula}, diff=all]{S_n = \frac{n(n+1)}{2}}
+\end{stepdiff}
+```
+
+```latex
+\begin{stepdiff}[theme=minimal, highlight=underline]
+\step{x^2 - 1 = (x-1)(x+1)}
+\step[reason={expand}, diff=false]{x^2 - 1 = x^2 - 1}
+\end{stepdiff}
+```
+
+Supported environment options for v0.5.0:
+
+- `theme=soft`: light background highlighting and subtle reason annotations for lecture notes.
+- `theme=minimal`: no background boxes by default, with a cleaner underline style.
+- `highlight=background`: changed chunks use a light background.
+- `highlight=underline`: changed chunks are underlined.
+- `highlight=color`: changed chunks are colored without a box.
+- `highlight=none`: changed chunks are rendered without visible highlighting.
+- `layout=compact`: close to the original spacing.
+- `layout=lecture`: slightly more vertical spacing and more separation before reasons.
+- `layout=wide`: wider separation between the formula and reason column.
+
+Use `diff=all` for a final or especially important line. A dedicated `tag=final` option is not implemented yet.
+
 ## Customization
 
 The default highlighting and reason styling are intentionally simple. Redefine these hooks in your preamble:
@@ -127,7 +161,7 @@ The default highlighting and reason styling are intentionally simple. Redefine t
 
 `\SDchanged{...}` receives changed math content and should remain safe in math mode. `\SDreason{...}` styles reason text inside the annotation column.
 
-Two built-in environment styles are available:
+The v0.5.0 visual options are preferred for new documents, but the older style aliases remain available:
 
 ```latex
 \begin{stepdiff}[style=highlight]
@@ -139,7 +173,7 @@ Two built-in environment styles are available:
 \end{stepdiff}
 ```
 
-The recommended styles for v0.2.0 are the default yellow highlight and the underline style for documents where background color is undesirable. Users can still redefine `\SDchanged` directly for custom colors or print-oriented styles.
+Users can still redefine `\SDchanged` and `\SDreason` directly for custom colors, print-oriented styles, or house style requirements.
 
 Reasons can be hidden and shown globally:
 
@@ -157,6 +191,7 @@ The repository includes:
 - `examples/calculus.tex`: derivative and logarithmic differentiation examples.
 - `examples/manual-control.tex`: diff modes and customization examples.
 - `examples/relations.tex`: relation-alignment examples.
+- `examples/visual-styles.tex`: themes, highlight modes, and layout examples.
 - `examples/beamer-demo.tex`: minimal Beamer frame using `stepdiff`.
 
 Compile one example directly from the repository root:
@@ -199,7 +234,7 @@ make lua-test
 ## Roadmap
 
 - Continue improving the math atom tokenizer for more macros and delimiter patterns.
-- Add more built-in color themes for lecture notes, print, and slides.
+- Add more polished final-step emphasis controls, such as a possible `tag=final` option.
 - Improve Beamer overlay support for revealing derivation steps incrementally.
 - Add more robust examples and package tests.
 - Explore a future optional semantic mode while keeping the current visual mode simple and predictable.

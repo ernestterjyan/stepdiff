@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.4.0 - Unreleased
+## 0.5.0 - Unreleased
+
+- Added visual themes.
+- Added highlight modes.
+- Added layout modes.
+- Improved reason annotation styling.
+- Added visual style examples and tests.
+
+## 0.4.0 - Relation-aware alignment
 
 - Added relation-aware alignment.
 - Added support for aligning at common relation symbols such as `=`, `\le`, `\ge`, `\approx`, `\equiv`, and `\Rightarrow`.

@@ -1,0 +1,92 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+
+\title{stepdiff Visual Style Examples}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Soft lecture theme}
+
+\[
+\begin{stepdiff}[theme=soft, layout=lecture, highlight=background]
+\step{S_n = 1 + 2 + \cdots + n}
+\step[reason={pair terms}]{2S_n = n(n+1)}
+\step[reason={final formula}, diff=all]{S_n = \frac{n(n+1)}{2}}
+\end{stepdiff}
+\]
+
+\section*{Minimal theme}
+
+\[
+\begin{stepdiff}[theme=minimal, highlight=underline]
+\step{x^2 - 1 = (x-1)(x+1)}
+\step[reason={expand}, diff=false]{x^2 - 1 = x^2 - 1}
+\step[reason={restore identity}]{x^2 - 1 = (x-1)(x+1)}
+\end{stepdiff}
+\]
+
+\section*{Highlight modes}
+
+\noindent\small\emph{In order: \texttt{highlight=background}, \texttt{highlight=underline}, \texttt{highlight=color}, \texttt{highlight=none}.}\normalsize
+
+\[
+\begin{stepdiff}[highlight=background]
+\step{f(x) = x^2 + 2x}
+\step[reason={differentiate}]{f'(x) = 2x + 2}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[highlight=underline]
+\step{a_n \le b_n}
+\step[reason={take limits}]{\lim a_n \le \lim b_n}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[highlight=color]
+\step{\sin x \sim x}
+\step[reason={small angle}]{\sin x \approx x}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[highlight=none]
+\step{P \Rightarrow Q}
+\step[reason={add hypothesis}]{P \wedge R \Rightarrow Q}
+\end{stepdiff}
+\]
+
+\section*{Layout modes}
+
+\noindent\small\emph{In order: \texttt{layout=compact}, \texttt{layout=lecture}, \texttt{layout=wide}.}\normalsize
+
+\[
+\begin{stepdiff}[layout=compact]
+\step{g(x)=x^3}
+\step[reason={differentiate}]{g'(x)=3x^2}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[layout=lecture]
+\step{h(x)=\log x}
+\step[reason={differentiate}]{h'(x)=\frac{1}{x}}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[layout=wide]
+\step{A \equiv B}
+\step[reason={substitute definition}]{A \equiv C}
+\end{stepdiff}
+\]
+
+\end{document}

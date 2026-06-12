@@ -1,5 +1,5 @@
 -- stepdiff.lua
--- stepdiff v0.2.0
+-- stepdiff v0.5.0
 -- Author: Ernest Terjyan
 -- Description: LuaLaTeX package for step-by-step derivations with visual diffing.
 -- License: MIT

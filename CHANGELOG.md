@@ -8,16 +8,25 @@
 - Reason annotation styles: `plain`, `muted`, and `badge`.
 - Optional framed derivation blocks with `frame=true`.
 - Final-step emphasis with `tag=final`.
-- New polished lecture-note example.
+- Typed visual diffing with `color-mode=single`, `color-mode=typed`, and `color-mode=teaching`.
+- Public visual macros: `\SDadded`, `\SDmodified`, `\SDoperation`, `\SDmoved`, and `\SDfinal`.
+- Conservative operation detection for examples such as `\lim` applied to both sides of a relation.
+- Optional visual legend support with `legend=true`, rendered from styled typed-category sample words.
+- New typed-color examples and tests.
 
 ### Improved
 - Highlight appearance.
 - Vertical spacing and visual rhythm.
 - Visual examples and documentation.
 - Beamer overlay visuals.
+- Showcase examples for notes, visual styles, and Beamer slides.
+- Final-step emphasis and conclusion-line consistency.
+- Teaching-oriented visual hierarchy.
+- Reason badge styling in teaching mode, coordinated with the operation color.
+- Demo and polished-note examples.
 
 ### Notes
-`stepdiff` remains a visual token-level diffing package. It does not check mathematical correctness, does not use a CAS, and does not understand transformations semantically.
+`stepdiff` remains a visual token-level diffing package. Typed visual categories are syntactic and pedagogical; they do not verify mathematical correctness, do not use a CAS, and do not understand transformations semantically.
 
 ## 1.0.0-rc1 - Unreleased
 

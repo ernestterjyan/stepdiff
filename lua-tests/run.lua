@@ -68,7 +68,8 @@ end
 local modules = {
   "test-tokenizer",
   "test-diff",
-  "test-relations"
+  "test-relations",
+  "test-typed-diff"
 }
 
 for _, module_name in ipairs(modules) do

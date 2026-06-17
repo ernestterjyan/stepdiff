@@ -1,6 +1,6 @@
 \documentclass{article}
 
-\usepackage[margin=1in]{geometry}
+\usepackage[margin=0.85in]{geometry}
 \usepackage{xcolor}
 \usepackage{stepdiff}
 
@@ -16,64 +16,55 @@
   reason-style=muted
 }
 
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
 \begin{document}
 
 \maketitle
+\vspace{-1.5em}
 
-\section*{Algebra expansion}
+\section*{A compact worked expansion}
 
 \[
-\begin{stepdiff}[frame=true]
-\step{(x+2)(x+3)}
-\step[reason={distribute}]{x(x+3)+2(x+3)}
-\step[reason={collect terms}]{x^2+5x+6}
-\step[reason={final form}, tag=final]{x^2+5x+6}
+\begin{stepdiff}[color-mode=typed, frame=true]
+\step{(x + 2)(x + 3)}
+\step[reason={distribute the first factor}]{x(x + 3) + 2(x + 3)}
+\step[reason={expand products}]{x^2 + 3x + 2x + 6}
+\step[reason={collect like terms}]{x^2 + 5x + 6}
+\step[reason={standard form}, diff=all, tag=final]{x^2 + 5x + 6}
 \end{stepdiff}
 \]
 
-\section*{Relation-aware derivation}
+\section*{Relation-aware alignment}
 
 \[
-\begin{stepdiff}[layout=wide]
+\begin{stepdiff}[display=focus, theme=focus, color-mode=teaching, reason-style=badge, frame=true, legend=true]
 \step{a_n \le b_n}
 \step[reason={take limits}]{\lim a_n \le \lim b_n}
-\step[reason={identify limits}, tag=final]{L \le M}
+\step[reason={identify the limits}, diff=all, tag=final]{L \le M}
 \end{stepdiff}
 \]
 
-\section*{Derivative calculation}
+\section*{Focus mode for a final value}
 
 \[
-\begin{stepdiff}[display=focus, theme=focus, reason-style=badge]
+\begin{stepdiff}[display=focus, theme=focus, reason-style=badge, frame=true]
 \step{f(x) = x^3 + 2x}
 \step[reason={differentiate}]{f'(x) = 3x^2 + 2}
-\step[reason={evaluate at x=2}]{f'(2) = 3\cdot 2^2 + 2}
-\step[reason={final value}, tag=final]{f'(2) = 14}
+\step[reason={evaluate at x = 2}]{f'(2) = 3 \cdot 2^2 + 2}
+\step[reason={simplify}, diff=all, tag=final]{f'(2) = 14}
 \end{stepdiff}
 \]
 
-\section*{Manual control}
+\section*{A polished framed derivation}
 
 \[
-\begin{stepdiff}[theme=minimal, highlight=underline]
-\step{x^2 - 1 = (x-1)(x+1)}
-\step[reason={automatic diff}, diff=auto]{x^2 - 1 = x^2 - 1}
-\step[reason={suppress noisy highlight}, diff=false]{x^2 - 1 = x^2 - 1}
-\step[reason={emphasize identity}, diff=all, tag=final]{x^2 - 1 = (x-1)(x+1)}
+\begin{stepdiff}[display=notes, theme=soft, color-mode=typed, frame=true]
+\step{x^2 - 1 = x^2 - 1}
+\step[reason={write one as a square}]{x^2 - 1 = x^2 - 1^2}
+\step[reason={factor difference of squares}, diff=all, tag=final]{x^2 - 1 = (x - 1)(x + 1)}
 \end{stepdiff}
 \]
-
-\section*{Customization hook}
-
-\begingroup
-\renewcommand{\SDchanged}[1]{\begingroup\color{red!65!black}#1\endgroup}
-\renewcommand{\SDreason}[1]{\normalfont\scriptsize\sffamily\color{black!55}#1}
-\[
-\begin{stepdiff}[frame=true]
-\step{p(x) = x^2 + 2x + 1}
-\step[reason={custom highlight style}, tag=final]{p(x) = (x+1)^2}
-\end{stepdiff}
-\]
-\endgroup
 
 \end{document}

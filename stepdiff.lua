@@ -11,7 +11,7 @@
 
 local M = {}
 local steps = {}
-local current_options = { frame = false }
+local current_options = { frame = false, color_mode = "single", legend = false }
 
 -- ---------------------------------------------------------------------------
 -- Helpers
@@ -259,7 +259,7 @@ end
 -- LCS diffing
 -- ---------------------------------------------------------------------------
 
-local function lcs_matches(prev, curr)
+local function lcs_match_maps(prev, curr)
   local n = #prev
   local m = #curr
   local dp = {}
@@ -282,12 +282,16 @@ local function lcs_matches(prev, curr)
   end
 
   local matched_curr = {}
+  local matched_prev = {}
+  local pairs_reversed = {}
   local i = n
   local j = m
 
   while i > 0 and j > 0 do
     if prev[i].text == curr[j].text then
+      matched_prev[i] = true
       matched_curr[j] = true
+      pairs_reversed[#pairs_reversed + 1] = { prev = i, curr = j }
       i = i - 1
       j = j - 1
     elseif dp[i - 1][j] >= dp[i][j - 1] then
@@ -297,6 +301,16 @@ local function lcs_matches(prev, curr)
     end
   end
 
+  local pairs = {}
+  for k = #pairs_reversed, 1, -1 do
+    pairs[#pairs + 1] = pairs_reversed[k]
+  end
+
+  return matched_curr, matched_prev, pairs
+end
+
+local function lcs_matches(prev, curr)
+  local matched_curr = lcs_match_maps(prev, curr)
   return matched_curr
 end
 
@@ -360,6 +374,14 @@ local function normalize_bool(value)
   return value == "true"
 end
 
+local function normalize_color_mode(mode)
+  mode = strip_tex_sentinels(mode or "single"):lower():gsub("^%s+", ""):gsub("%s+$", "")
+  if mode == "typed" or mode == "teaching" then
+    return mode
+  end
+  return "single"
+end
+
 local function is_final_step(step)
   return step ~= nil and step.tag == "final"
 end
@@ -387,7 +409,33 @@ local function should_highlight_token(index, token, matched, alignment_index)
   return true
 end
 
-local function append_changed_chunk(out, chunk)
+local function wrapper_for_category(category)
+  local mode = current_options.color_mode or "single"
+
+  if category == "final" then
+    return "\\SDfinal"
+  end
+
+  if mode == "single" then
+    return "\\SDchanged"
+  end
+
+  if category == "operation" and mode == "teaching" then
+    return "\\SDoperation"
+  elseif category == "operation" then
+    return "\\SDadded"
+  elseif category == "added" then
+    return "\\SDadded"
+  elseif category == "modified" then
+    return "\\SDmodified"
+  elseif category == "moved" then
+    return "\\SDmoved"
+  end
+
+  return "\\SDchanged"
+end
+
+local function append_typed_chunk(out, chunk, category)
   if #chunk == 0 then
     return
   end
@@ -409,7 +457,8 @@ local function append_changed_chunk(out, chunk)
   if only_weak then
     out[#out + 1] = first.leading .. text
   else
-    out[#out + 1] = first.leading .. "\\SDchanged{" .. text .. "}"
+    local wrapper = wrapper_for_category(category or "modified")
+    out[#out + 1] = first.leading .. wrapper .. "{" .. text .. "}"
   end
 end
 
@@ -422,62 +471,224 @@ local function render_plain_range(tokens, first_index, last_index)
   return table.concat(out)
 end
 
-local function render_all_range(tokens, first_index, last_index)
+local function render_all_range(tokens, first_index, last_index, category)
   local plain = render_plain_range(tokens, first_index, last_index)
   if plain == "" then
     return plain
   end
-  return "\\SDchanged{" .. plain .. "}"
+  local wrapper = wrapper_for_category(category or "modified")
+  return wrapper .. "{" .. plain .. "}"
 end
 
-local function build_highlight_flags(
-  tokens,
-  first_index,
-  last_index,
-  matched,
-  alignment_index
-)
-  local flags = {}
-
+local function side_slice(tokens, first_index, last_index)
+  local side = {}
   for i = first_index, last_index do
-    flags[i] = should_highlight_token(i, tokens[i], matched, alignment_index)
+    side[#side + 1] = { index = i, text = tokens[i].text }
+  end
+  return side
+end
+
+local function prefix_before_matching_suffix(prev_side, curr_side)
+  if #prev_side == 0 or #curr_side <= #prev_side then
+    return nil
   end
 
-  -- If weak punctuation/operator tokens sit between changed atoms, include them
-  -- in the same visual chunk. This stays textual: it does not infer meaning.
-  for i = first_index + 1, last_index - 1 do
-    local token = tokens[i]
-    if
-      not flags[i]
-      and bridge_tokens[token.text]
-      and flags[i - 1]
-      and flags[i + 1]
-    then
-      flags[i] = true
+  local prefix_len = #curr_side - #prev_side
+  -- Keep this intentionally conservative for v1.1: only short syntactic prefixes.
+  if prefix_len > 3 then
+    return nil
+  end
+
+  for i = 1, #prev_side do
+    if curr_side[prefix_len + i].text ~= prev_side[i].text then
+      return nil
     end
+  end
+
+  local prefix = {}
+  for i = 1, prefix_len do
+    prefix[#prefix + 1] = curr_side[i]
+  end
+  return prefix
+end
+
+local function same_prefix_text(a, b)
+  if a == nil or b == nil or #a ~= #b then
+    return false
+  end
+  for i = 1, #a do
+    if a[i].text ~= b[i].text then
+      return false
+    end
+  end
+  return true
+end
+
+local function detect_operation_flags(prev_step, step)
+  local flags = {}
+  if prev_step == nil then
+    return flags
+  end
+
+  local prev_relation_index, prev_relation = find_alignment_relation(prev_step.tokens)
+  local curr_relation_index, curr_relation = find_alignment_relation(step.tokens)
+  if
+    prev_relation_index == nil
+    or curr_relation_index == nil
+    or prev_relation ~= curr_relation
+  then
+    return flags
+  end
+
+  local prev_lhs = side_slice(prev_step.tokens, 1, prev_relation_index - 1)
+  local prev_rhs = side_slice(prev_step.tokens, prev_relation_index + 1, #prev_step.tokens)
+  local curr_lhs = side_slice(step.tokens, 1, curr_relation_index - 1)
+  local curr_rhs = side_slice(step.tokens, curr_relation_index + 1, #step.tokens)
+
+  local lhs_prefix = prefix_before_matching_suffix(prev_lhs, curr_lhs)
+  local rhs_prefix = prefix_before_matching_suffix(prev_rhs, curr_rhs)
+
+  if not same_prefix_text(lhs_prefix, rhs_prefix) then
+    return flags
+  end
+
+  for _, token in ipairs(lhs_prefix) do
+    flags[token.index] = true
+  end
+  for _, token in ipairs(rhs_prefix) do
+    flags[token.index] = true
   end
 
   return flags
 end
 
-local function render_token_range(tokens, first_index, last_index, matched, alignment_index)
+local function changed_run_category(first_index, last_index, match_context)
+  if match_context == nil then
+    return nil
+  end
+
+  local before_prev = 0
+  local after_prev = #match_context.prev_tokens + 1
+
+  for _, pair in ipairs(match_context.pairs) do
+    if pair.curr < first_index then
+      before_prev = pair.prev
+    elseif pair.curr > last_index then
+      after_prev = pair.prev
+      break
+    end
+  end
+
+  for i = before_prev + 1, after_prev - 1 do
+    local token = match_context.prev_tokens[i]
+    if token ~= nil and not match_context.matched_prev[i] and not weak_tokens[token.text] then
+      return "modified"
+    end
+  end
+
+  return "added"
+end
+
+local function build_category_flags(
+  tokens,
+  first_index,
+  last_index,
+  match_context,
+  alignment_index,
+  operation_flags
+)
+  local categories = {}
+  local matched = match_context and match_context.matched_curr or nil
+  local i = first_index
+
+  while i <= last_index do
+    local token = tokens[i]
+    if should_highlight_token(i, token, matched, alignment_index) then
+      local run_first = i
+      local run_last = i
+      while
+        run_last + 1 <= last_index
+        and should_highlight_token(run_last + 1, tokens[run_last + 1], matched, alignment_index)
+      do
+        run_last = run_last + 1
+      end
+
+      local category = changed_run_category(run_first, run_last, match_context) or "modified"
+      for k = run_first, run_last do
+        categories[k] = category
+      end
+      i = run_last + 1
+    else
+      i = i + 1
+    end
+  end
+
+  for index, is_operation in pairs(operation_flags or {}) do
+    if is_operation and categories[index] ~= nil then
+      categories[index] = "operation"
+    end
+  end
+
+  -- If weak punctuation/operator tokens sit between changed atoms, include them
+  -- in the same visual chunk. This stays textual: it does not infer meaning.
+  for index = first_index + 1, last_index - 1 do
+    local token = tokens[index]
+    if not categories[index] and bridge_tokens[token.text] then
+      local left = categories[index - 1]
+      local right = categories[index + 1]
+      if left ~= nil and right ~= nil then
+        if left == right then
+          categories[index] = left
+        else
+          categories[index] = "modified"
+        end
+      end
+    end
+  end
+
+  return categories
+end
+
+local function render_token_range(
+  tokens,
+  first_index,
+  last_index,
+  match_context,
+  alignment_index,
+  operation_flags
+)
   local out = {}
   local chunk = {}
-  local flags = build_highlight_flags(tokens, first_index, last_index, matched, alignment_index)
+  local chunk_category = nil
+  local categories = build_category_flags(
+    tokens,
+    first_index,
+    last_index,
+    match_context,
+    alignment_index,
+    operation_flags
+  )
 
   for i = first_index, last_index do
     local token = tokens[i]
+    local category = categories[i]
 
-    if flags[i] then
+    if category ~= nil then
+      if chunk_category ~= nil and category ~= chunk_category then
+        append_typed_chunk(out, chunk, chunk_category)
+        chunk = {}
+      end
       chunk[#chunk + 1] = token
+      chunk_category = category
     else
-      append_changed_chunk(out, chunk)
+      append_typed_chunk(out, chunk, chunk_category)
       chunk = {}
+      chunk_category = nil
       out[#out + 1] = token.leading .. token.text
     end
   end
 
-  append_changed_chunk(out, chunk)
+  append_typed_chunk(out, chunk, chunk_category)
   return table.concat(out)
 end
 
@@ -508,14 +719,14 @@ local function make_step(math, reason, diff_mode, overlay, tag)
   }
 end
 
-local function select_render_range(diff_mode)
+local function select_render_range(diff_mode, all_category)
   if diff_mode == "none" then
     return function(tokens, first_index, last_index)
       return render_plain_range(tokens, first_index, last_index)
     end
   elseif diff_mode == "all" then
     return function(tokens, first_index, last_index)
-      return render_all_range(tokens, first_index, last_index)
+      return render_all_range(tokens, first_index, last_index, all_category)
     end
   end
 
@@ -523,37 +734,50 @@ local function select_render_range(diff_mode)
 end
 
 local function render_step_cells(prev_step, step)
-  local matched = nil
+  local match_context = nil
+  local operation_flags = {}
+
   if prev_step ~= nil and step.diff_mode == "auto" then
-    matched = lcs_matches(prev_step.tokens, step.tokens)
+    local matched_curr, matched_prev, pairs = lcs_match_maps(prev_step.tokens, step.tokens)
+    match_context = {
+      prev_tokens = prev_step.tokens,
+      matched_curr = matched_curr,
+      matched_prev = matched_prev,
+      pairs = pairs
+    }
+    operation_flags = detect_operation_flags(prev_step, step)
   end
 
   local alignment_index, relation_text = find_alignment_relation(step.tokens)
-  local render_range = select_render_range(step.diff_mode)
+  local all_category = is_final_step(step) and "final" or "modified"
+  local render_range = select_render_range(step.diff_mode, all_category)
 
   if alignment_index ~= nil then
     local lhs = render_range(
       step.tokens,
       1,
       alignment_index - 1,
-      matched,
-      alignment_index
+      match_context,
+      alignment_index,
+      operation_flags
     )
     local rhs = render_range(
       step.tokens,
       alignment_index + 1,
       #step.tokens,
-      matched,
-      alignment_index
+      match_context,
+      alignment_index,
+      operation_flags
     )
     local relation = relation_text
     if step.diff_mode == "all" then
-      relation = "\\SDchanged{" .. relation_text .. "}"
+      local wrapper = wrapper_for_category(all_category)
+      relation = wrapper .. "{" .. relation_text .. "}"
     end
     return lhs, relation .. " " .. rhs
   end
 
-  return render_range(step.tokens, 1, #step.tokens, matched, alignment_index), "{}"
+  return render_range(step.tokens, 1, #step.tokens, match_context, alignment_index, operation_flags), "{}"
 end
 
 local function render_step_body(prev_step, step)
@@ -605,6 +829,10 @@ local function render_latex(step_list)
   rows[#rows + 1] = "\\end{aligned}"
 
   local latex = table.concat(rows, " ")
+  if current_options.legend and current_options.color_mode ~= "single" then
+    latex = "\\begin{gathered}\\SDlegend\\\\[2pt]" .. latex .. "\\end{gathered}"
+  end
+
   if current_options.frame then
     latex = "\\SDframed{" .. latex .. "}"
   end
@@ -616,9 +844,13 @@ end
 -- Public API
 -- ---------------------------------------------------------------------------
 
-function M.begin(frame)
+function M.begin(frame, color_mode, legend)
   steps = {}
-  current_options = { frame = normalize_bool(frame) }
+  current_options = {
+    frame = normalize_bool(frame),
+    color_mode = normalize_color_mode(color_mode),
+    legend = normalize_bool(legend)
+  }
 end
 
 function M.add(math, reason, diff_mode, overlay, tag)
@@ -635,10 +867,13 @@ M._test = {
   strip_tex_sentinels = strip_tex_sentinels,
   tokenize = tokenize,
   lcs_matches = lcs_matches,
+  lcs_match_maps = lcs_match_maps,
   normalize_diff_mode = normalize_diff_mode,
   normalize_tag = normalize_tag,
+  normalize_color_mode = normalize_color_mode,
   is_relation_token = is_relation_token,
   find_alignment_relation = find_alignment_relation,
+  detect_operation_flags = detect_operation_flags,
   make_step = make_step,
   render_step_cells = render_step_cells,
   render_step_body = render_step_body,
@@ -653,6 +888,24 @@ M._test = {
 
     local step = make_step(curr_math, "", diff_mode or "auto")
     return render_step_body(prev_step, step)
+  end,
+  render_pair_color = function(prev_math, curr_math, diff_mode, color_mode)
+    local previous_options = current_options
+    current_options = {
+      frame = false,
+      color_mode = normalize_color_mode(color_mode),
+      legend = false
+    }
+
+    local prev_step = nil
+    if prev_math ~= nil then
+      prev_step = make_step(prev_math, "", "auto")
+    end
+
+    local step = make_step(curr_math, "", diff_mode or "auto")
+    local out = render_step_body(prev_step, step)
+    current_options = previous_options
+    return out
   end,
   render_overlay_pair = function(prev_math, curr_math, overlay)
     local prev_step = nil

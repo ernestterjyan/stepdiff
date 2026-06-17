@@ -1,0 +1,45 @@
+\documentclass{article}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+\begin{document}
+
+\[
+\begin{stepdiff}[color-mode=single, legend=false]
+\step{x^2 + 2x + 1}
+\step[reason={differentiate}]{2x + 2}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[color-mode=typed, legend=true]
+\step{(x + 2)(x + 3)}
+\step[reason={distribute}]{x(x + 3) + 2(x + 3)}
+\step[reason={collect}, tag=final]{x^2 + 5x + 6}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[display=focus, theme=focus, color-mode=teaching, reason-style=badge, frame=true, legend=true]
+\step{a_n \le b_n}
+\step[reason={take limits}]{\lim a_n \le \lim b_n}
+\step[reason={identify limits}, tag=final]{L \le M}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[color-mode=typed]
+\step{x^2 - 1 = (x - 1)(x + 1)}
+\step[reason={plain}, diff=none]{x^2 - 1 = (x - 1)(x + 1)}
+\step[reason={all final}, diff=all, tag=final]{x^2 - 1 = x^2 - 1}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[display=slide, color-mode=teaching, legend=false]
+\step{P \Rightarrow Q}
+\step[reason={add hypothesis}]{P \wedge R \Rightarrow Q}
+\step[reason={final}, diff=all, tag=final]{P \wedge R \Rightarrow Q}
+\end{stepdiff}
+\]
+
+\end{document}

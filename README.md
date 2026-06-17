@@ -49,9 +49,9 @@ make lua-test
 
 \[
 \begin{stepdiff}
-\step{a(x+b)}
-\step[reason={distribute}]{ax+ab}
-\step[reason={commute terms}]{ab+ax}
+\step{a(x + b)}
+\step[reason={distribute}]{ax + ab}
+\step[reason={commute terms}]{ab + ax}
 \end{stepdiff}
 \]
 
@@ -82,10 +82,10 @@ Visual options are set globally with `\stepdiffsetup{...}` or locally on a `step
 
 ```latex
 \[
-\begin{stepdiff}[display=focus, theme=focus, reason-style=badge]
-\step{f(x)=x^2+2x}
-\step[reason={differentiate}]{f'(x)=2x+2}
-\step[reason={evaluate}, tag=final]{f'(3)=8}
+\begin{stepdiff}[display=focus, theme=focus, layout=lecture, reason-style=badge]
+\step{f(x) = x^2 + 2x}
+\step[reason={differentiate}]{f'(x) = 2x + 2}
+\step[reason={evaluate}, tag=final]{f'(3) = 8}
 \end{stepdiff}
 \]
 ```
@@ -120,9 +120,9 @@ Framed derivation blocks use `frame=true`:
 ```latex
 \[
 \begin{stepdiff}[display=notes, frame=true]
-\step{x^2-1=(x-1)(x+1)}
-\step[reason={expand}]{x^2-1=x^2-1}
-\step[reason={result}, tag=final]{x^2-1=(x-1)(x+1)}
+\step{x^2 - 1 = (x - 1)(x + 1)}
+\step[reason={expand}]{x^2 - 1 = x^2 - 1}
+\step[reason={result}, tag=final]{x^2 - 1 = (x - 1)(x + 1)}
 \end{stepdiff}
 \]
 ```
@@ -133,17 +133,54 @@ Final-step emphasis uses `tag=final` on a step. It adds a little spacing before 
 \step[reason={final formula}, diff=all, tag=final]{S_n = \frac{n(n+1)}{2}}
 ```
 
-Global setup supports `display`, `theme`, `layout`, `highlight`, `reason-style`, `frame`, and `show-reasons`.
+Global setup supports `display`, `theme`, `layout`, `highlight`, `reason-style`, `frame`, `color-mode`, `legend`, and `show-reasons`.
+
+## Typed visual diffing
+
+By default, `stepdiff` uses `color-mode=single`, which preserves the original one-style behavior through `\SDchanged{...}`. For richer visual hierarchy, use `color-mode=typed` or `color-mode=teaching`:
+
+```latex
+\[
+\begin{stepdiff}[color-mode=typed]
+\step{(x + 2)(x + 3)}
+\step[reason={distribute}]{x(x + 3) + 2(x + 3)}
+\step[reason={collect terms}, diff=all, tag=final]{x^2 + 5x + 6}
+\end{stepdiff}
+\]
+```
+
+Teaching mode adds a conservative visual category for repeated structural prefixes, such as `\lim` applied to both sides of a relation. Add `legend=true` in typed or teaching mode to show a compact legend rendered with the same visual hooks as the derivation:
+
+```latex
+\[
+\begin{stepdiff}[color-mode=teaching, reason-style=badge, frame=true, legend=true]
+\step{a_n \le b_n}
+\step[reason={take limits}]{\lim a_n \le \lim b_n}
+\step[reason={identify limits}, diff=all, tag=final]{L \le M}
+\end{stepdiff}
+\]
+```
+
+Visual categories are exposed through math-safe customization macros:
+
+- `\SDchanged{...}`: generic changed content and backward-compatible default.
+- `\SDadded{...}`: newly inserted visual chunks, shown with the added style.
+- `\SDmodified{...}`: replaced or rewritten visual chunks, shown with the modified style.
+- `\SDoperation{...}`: conservatively detected repeated operation chunks in teaching mode, shown with the operation style.
+- `\SDfinal{...}`: final/result emphasis used by `tag=final`, shown with the final style.
+- `\SDmoved{...}`: reserved for simple moved/reordered chunks; current detection is limited.
+
+These categories are syntactic and pedagogical. They do not prove that a transformation is valid, do not call a CAS, and do not give `stepdiff` semantic mathematical understanding. If operation detection is uncertain, rendering falls back to ordinary typed diffing.
 
 ## Manual control
 
 Automatic token-level diffing is approximate, so each step can choose a diff mode:
 
 ```latex
-\step[reason={default}, diff=auto]{x^2+2x+1}
-\step[reason={hide diff}, diff=false]{x^2+2x+1}
-\step[reason={also hide diff}, diff=none]{x^2+2x+1}
-\step[reason={emphasize line}, diff=all]{x^2+2x+1}
+\step[reason={default}, diff=auto]{x^2 + 2x + 1}
+\step[reason={hide diff}, diff=false]{x^2 + 2x + 1}
+\step[reason={also hide diff}, diff=none]{x^2 + 2x + 1}
+\step[reason={emphasize line}, diff=all]{x^2 + 2x + 1}
 ```
 
 `diff=auto` is the default. Use `diff=false` or `diff=none` when highlighting is noisy. Use `diff=all` when the whole line should be emphasized.
@@ -173,10 +210,10 @@ Relation detection is conservative and token-based. It avoids splitting inside c
 In Beamer documents, `\step` accepts overlay specifications:
 
 ```latex
-\begin{stepdiff}[display=slide, theme=focus, reason-style=badge]
-\step<1->{f(x)=x^2}
-\step<2->[reason={differentiate}]{f'(x)=2x}
-\step<3->[reason={evaluate at x=3}, tag=final]{f'(3)=6}
+\begin{stepdiff}[display=slide, theme=focus, layout=lecture, reason-style=badge]
+\step<1->{f(x) = x^2}
+\step<2->[reason={differentiate}]{f'(x) = 2x}
+\step<3->[reason={evaluate at x = 3}, tag=final]{f'(3) = 6}
 \end{stepdiff}
 ```
 
@@ -206,15 +243,16 @@ For new documents, prefer `\stepdiffsetup{show-reasons=false}` when hiding reaso
 
 The repository includes:
 
-- `examples/demo.tex`: polished main v1.1 demo.
-- `examples/visual-styles.tex`: display modes, themes, highlights, reason styles, frames, and final tags.
-- `examples/polished-notes.tex`: realistic lecture-note style derivation.
+- `examples/demo.tex`: polished main v1.1 showcase.
+- `examples/visual-styles.tex`: display modes, color modes, highlights, reason styles, frames, final tags, and customization hooks.
+- `examples/typed-colors.tex`: color modes, typed categories, operation detection, and legend support.
+- `examples/polished-notes.tex`: lecture-note usage with realistic derivations.
 - `examples/relations.tex`: relation-aware alignment examples.
 - `examples/algebra.tex`: expansion and factorization examples.
 - `examples/calculus.tex`: derivative and logarithmic differentiation examples.
 - `examples/manual-control.tex`: diff modes and customization examples.
 - `examples/beamer-demo.tex`: minimal Beamer frame using `stepdiff`.
-- `examples/beamer-overlays.tex`: Beamer overlay reveals with visual styles.
+- `examples/beamer-overlays.tex`: slide-friendly Beamer overlay reveals.
 
 Compile all examples with:
 

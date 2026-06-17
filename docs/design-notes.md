@@ -48,9 +48,21 @@ Themes set coordinated colors and default highlight/reason treatments:
 
 Highlight modes, reason styles, framed blocks, and final-step emphasis are intentionally small hooks around the existing rendered tokens. `\SDchanged{...}` controls changed math chunks, `\SDreason{...}` controls reason text, `\SDfinalmath{...}` and `\SDfinalreason{...}` control final-step presentation, and `frame=true` wraps the aligned block in a lightweight box.
 
+Recommended note-style documents start from `display=notes`, `theme=soft`, `layout=lecture`, `highlight=background`, and `reason-style=muted`. Beamer examples use `display=slide`, `theme=focus`, `layout=lecture`, and `reason-style=badge` so reasons remain readable at presentation size.
+
+## Typed Visual Diffing
+
+Typed visual diffing is a presentation layer over the existing token-level LCS comparison. The renderer can label current-line chunks as generic changed content, added content, modified content, a conservative operation prefix, or final-result emphasis. These labels are visual and syntactic; they are not mathematical judgments.
+
+`color-mode=single` keeps the original behavior and renders changed chunks through `\SDchanged{...}`. `color-mode=typed` uses `\SDadded{...}` and `\SDmodified{...}` for simple inserted and replaced chunks. `color-mode=teaching` additionally uses `\SDoperation{...}` when the same short prefix is detected on both sides of the same relation. In typed and teaching modes, `legend=true` renders a compact legend from styled sample words that use `\SDadded`, `\SDmodified`, `\SDoperation`, and `\SDfinal` directly.
+
+The first supported operation pattern is deliberately narrow: if two consecutive relation-aware lines have the same top-level relation and the current left and right sides both add the same short prefix before the previous side, that prefix can be marked as an operation. This covers examples such as `a_n \le b_n` becoming `\lim a_n \le \lim b_n`. If the pattern does not match, the renderer falls back to ordinary typed diffing.
+
+The public macros `\SDchanged`, `\SDadded`, `\SDmodified`, `\SDoperation`, `\SDmoved`, and `\SDfinal` are math-mode-safe styling hooks. `\SDmoved` exists as a customization hook for future simple movement detection; v1.1 does not attempt general reordering analysis.
+
 ## Global Setup
 
-`\stepdiffsetup{...}` stores a default key list for document-level visual defaults. Each environment applies package defaults, then global setup, then local environment options. Supported visual defaults include `display`, `theme`, `layout`, `highlight`, `reason-style`, `frame`, and `show-reasons`.
+`\stepdiffsetup{...}` stores a default key list for document-level visual defaults. Each environment applies package defaults, then global setup, then local environment options. Supported visual defaults include `display`, `theme`, `layout`, `highlight`, `reason-style`, `frame`, `color-mode`, `legend`, and `show-reasons`.
 
 ## Beamer Overlays
 

@@ -1,0 +1,62 @@
+\documentclass{article}
+
+\usepackage[margin=0.85in]{geometry}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+
+\title{stepdiff Typed Color Examples}
+\author{}
+\date{}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\begin{document}
+
+\maketitle
+\vspace{-1.4em}
+
+\noindent\small Single mode keeps one changed style; typed mode separates added and modified chunks; teaching mode also marks repeated operations such as \ensuremath{\lim} applied to both sides. The legend uses the actual visual styles.\normalsize\par
+
+\section*{Single color mode}
+
+\[
+\begin{stepdiff}[display=notes, theme=soft, color-mode=single, frame=true]
+\step{(x + 2)(x + 3)}
+\step[reason={distribute}]{x(x + 3) + 2(x + 3)}
+\step[reason={collect terms}, diff=all, tag=final]{x^2 + 5x + 6}
+\end{stepdiff}
+\]
+
+\section*{Typed color mode}
+
+\[
+\begin{stepdiff}[display=notes, theme=soft, color-mode=typed, reason-style=muted, frame=true, legend=true]
+\step{(x + 2)(x + 3)}
+\step[reason={distribute}]{x(x + 3) + 2(x + 3)}
+\step[reason={collect terms}, diff=all, tag=final]{x^2 + 5x + 6}
+\end{stepdiff}
+\]
+
+\section*{Teaching mode: operation on both sides}
+
+\[
+\begin{stepdiff}[display=focus, theme=focus, color-mode=teaching, reason-style=badge, frame=true, legend=true]
+\step{a_n \le b_n}
+\step[reason={take limits}]{\lim a_n \le \lim b_n}
+\step[reason={identify limits}, diff=all, tag=final]{L \le M}
+\end{stepdiff}
+\]
+
+\section*{Teaching mode with final emphasis}
+
+\[
+\begin{stepdiff}[display=slide, theme=focus, color-mode=teaching, reason-style=badge]
+\step{f(x) = x^2 + 3x}
+\step[reason={differentiate}]{f'(x) = 2x + 3}
+\step[reason={evaluate at x = 3}]{f'(3) = 2 \cdot 3 + 3}
+\step[reason={final value}, diff=all, tag=final]{f'(3) = 9}
+\end{stepdiff}
+\]
+
+\end{document}

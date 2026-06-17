@@ -18,15 +18,16 @@ Use this checklist for a clean public release or release candidate.
 - Run `make lua-test`.
 - Visually inspect `examples/demo.pdf`.
 - Visually inspect `examples/visual-styles.pdf`.
+- Visually inspect `examples/typed-colors.pdf`.
 - Visually inspect `examples/polished-notes.pdf`.
 - Visually inspect `examples/beamer-overlays.pdf` for overlay behavior.
-- Spot-check `frame=true` and `tag=final` output in notes and Beamer contexts.
+- Spot-check `frame=true`, `tag=final`, `color-mode=typed`, `color-mode=teaching`, `legend=true`, and Beamer overlay output.
 
 ## Documentation
 
 - Check `README.md` status and API examples.
 - Check `docs/design-notes.md` for accurate non-goals.
-- Confirm visual presentation options are documented: display, theme, highlight, reason style, frame, final tag, and global setup.
+- Confirm visual presentation options are documented: display, theme, highlight, reason style, color mode, legend, frame, final tag, and global setup.
 - Confirm screenshot links under `docs/assets/` are stable.
 - Confirm generated PDFs are not committed.
 
@@ -37,4 +38,4 @@ Use this checklist for a clean public release or release candidate.
 - Push branch.
 - Push tag when releasing.
 - Create GitHub release.
-- Include notes that `stepdiff` performs visual token-level diffing and does not verify mathematics.
+- Include notes that `stepdiff` performs visual token-level diffing, typed categories are syntactic, and it does not verify mathematics.

@@ -1,6 +1,6 @@
 \documentclass{article}
 
-\usepackage[margin=1in]{geometry}
+\usepackage[margin=0.78in]{geometry}
 \usepackage{xcolor}
 \usepackage{stepdiff}
 
@@ -8,103 +8,169 @@
 \author{}
 \date{}
 
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+
+\newcommand{\stylecaption}[1]{%
+  \vspace{0.25em}%
+  {\normalfont\sffamily\bfseries\color{black!70}#1}\par\vspace{-0.55em}%
+}
+\newcommand{\stylecell}[2]{%
+  \begin{minipage}[t]{0.48\linewidth}
+  \stylecaption{#1}
+  #2
+  \end{minipage}%
+}
+
 \begin{document}
 
 \maketitle
+\vspace{-1.7em}
 
 \section*{Display modes}
 
+\stylecaption{Notes display}
 \[
-\begin{stepdiff}[display=notes, theme=soft, reason-style=muted]
+\begin{stepdiff}[display=notes, theme=soft, layout=lecture, reason-style=muted]
 \step{S_n = 1 + 2 + \cdots + n}
-\step[reason={pair terms}]{2S_n = n(n+1)}
-\step[reason={final formula}, diff=all, tag=final]{S_n = \frac{n(n+1)}{2}}
+\step[reason={pair terms}]{2S_n = n(n + 1)}
+\step[reason={final formula}, diff=all, tag=final]{S_n = \frac{n(n + 1)}{2}}
 \end{stepdiff}
 \]
 
+\stylecaption{Slide display}
 \[
-\begin{stepdiff}[display=slide, theme=soft, frame=true]
-\step{f(x)=x^2+2x}
-\step[reason={differentiate}]{f'(x)=2x+2}
-\step[reason={evaluate}, tag=final]{f'(3)=8}
+\begin{stepdiff}[display=slide, theme=soft, layout=lecture, frame=true]
+\step{f(x) = x^2 + 2x}
+\step[reason={differentiate}]{f'(x) = 2x + 2}
+\step[reason={evaluate}, tag=final]{f'(3) = 8}
 \end{stepdiff}
 \]
 
+\stylecaption{Focus display}
 \[
 \begin{stepdiff}[display=focus, theme=focus, reason-style=badge]
-\step{(x+1)^2}
-\step[reason={expand}]{x^2+2x+1}
-\step[reason={final}, tag=final]{x^2+2x+1}
+\step{(x + 1)^2}
+\step[reason={expand}]{x^2 + 2x + 1}
+\step[reason={final}, tag=final]{x^2 + 2x + 1}
 \end{stepdiff}
 \]
 
-\section*{Themes}
+\newpage
 
+\section*{Color modes}
+
+\stylecell{Single color}{%
 \[
-\begin{stepdiff}[theme=soft]
-\step{a=b}
-\step[reason={soft}]{a=c}
-\end{stepdiff}
-\qquad
-\begin{stepdiff}[theme=minimal]
-\step{a=b}
-\step[reason={minimal}]{a=c}
+\begin{stepdiff}[color-mode=single]
+\step{x + 1 = 4}
+\step[reason={subtract one}]{x = 3}
 \end{stepdiff}
 \]
-
+}
+\hfill
+\stylecell{Typed color}{%
 \[
-\begin{stepdiff}[theme=focus, display=focus]
-\step{a=b}
-\step[reason={focus}, tag=final]{a=c}
+\begin{stepdiff}[color-mode=typed]
+\step{x + 1 = 4}
+\step[reason={subtract one}]{x = 3}
+\end{stepdiff}
+\]
+}
+
+\vspace{0.6em}
+
+\stylecaption{Teaching color with legend}
+\[
+\begin{stepdiff}[display=focus, theme=focus, color-mode=teaching, reason-style=badge, frame=true, legend=true]
+\step{a_n \le b_n}
+\step[reason={take limits}]{\lim a_n \le \lim b_n}
+\step[reason={identify limits}, tag=final]{L \le M}
 \end{stepdiff}
 \]
 
 \section*{Highlight modes}
 
+\stylecell{Background highlight}{%
 \[
 \begin{stepdiff}[highlight=background]
-\step{x=1}
-\step[reason={background}]{x=2}
-\end{stepdiff}
-\qquad
-\begin{stepdiff}[highlight=underline]
-\step{x=1}
-\step[reason={underline}]{x=2}
+\step{x + 1 = 4}
+\step[reason={subtract one}]{x = 3}
 \end{stepdiff}
 \]
+}
+\hfill
+\stylecell{Underline highlight}{%
+\[
+\begin{stepdiff}[highlight=underline]
+\step{x + 1 = 4}
+\step[reason={subtract one}]{x = 3}
+\end{stepdiff}
+\]
+}
 
+\vspace{0.6em}
+
+\stylecell{Color highlight}{%
 \[
 \begin{stepdiff}[highlight=color]
-\step{x=1}
-\step[reason={color}]{x=2}
+\step{x + 1 = 4}
+\step[reason={subtract one}]{x = 3}
 \end{stepdiff}
-\qquad
+\]
+}
+\hfill
+\stylecell{No highlight}{%
+\[
 \begin{stepdiff}[highlight=none]
-\step{x=1}
-\step[reason={none}]{x=2}
+\step{x + 1 = 4}
+\step[reason={layout only}]{x = 3}
 \end{stepdiff}
 \]
+}
 
-\section*{Reason styles and framing}
+\section*{Reason labels and frames}
 
+\stylecaption{Muted reasons}
 \[
-\begin{stepdiff}[reason-style=plain]
-\step{u=v}
-\step[reason={plain}]{u=w}
-\end{stepdiff}
-\qquad
-\begin{stepdiff}[reason-style=muted]
-\step{u=v}
-\step[reason={muted}]{u=w}
+\begin{stepdiff}[display=notes, theme=soft, reason-style=muted]
+\step{u = v}
+\step[reason={substitute known value}]{u = w}
+\step[reason={conclude}, tag=final]{u = w}
 \end{stepdiff}
 \]
 
+\stylecaption{Badge reasons}
 \[
-\begin{stepdiff}[reason-style=badge, frame=true]
-\step{u=v}
-\step[reason={badge}]{u=w}
-\step[reason={final badge}, tag=final]{u=z}
+\begin{stepdiff}[display=focus, theme=focus, reason-style=badge]
+\step{g(x) = x^2\sin x}
+\step[reason={product rule}]{g'(x) = 2x\sin x + x^2\cos x}
+\step[reason={evaluate}, tag=final]{g'(0) = 0}
 \end{stepdiff}
 \]
+
+\stylecaption{Framed block}
+\[
+\begin{stepdiff}[display=notes, theme=soft, frame=true]
+\step{x^2 - 1 = (x - 1)(x + 1)}
+\step[reason={expand}]{x^2 - 1 = x^2 - 1}
+\step[reason={same identity}, tag=final]{x^2 - 1 = (x - 1)(x + 1)}
+\end{stepdiff}
+\]
+
+\section*{Customization hook}
+
+\stylecaption{Custom changed style}
+\begingroup
+\renewcommand{\SDchanged}[1]{\begingroup\color{red!65!black}#1\endgroup}
+\renewcommand{\SDreason}[1]{\normalfont\scriptsize\sffamily\color{black!55}#1}
+\[
+\begin{stepdiff}[display=notes, theme=soft, frame=true]
+\step{p(x) = x^2 + 2x + 1}
+\step[reason={custom hook}]{p(x) = (x + 1)^2}
+\step[reason={perfect square}, diff=all, tag=final]{p(x) = (x + 1)^2}
+\end{stepdiff}
+\]
+\endgroup
 
 \end{document}

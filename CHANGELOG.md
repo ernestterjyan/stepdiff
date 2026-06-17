@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.1.0 - Unreleased
+
+### Added
+- Higher-level display modes: `notes`, `slide`, and `focus`.
+- Improved visual theme system, including `theme=focus`.
+- Reason annotation styles: `plain`, `muted`, and `badge`.
+- Optional framed derivation blocks with `frame=true`.
+- Final-step emphasis with `tag=final`.
+- New polished lecture-note example.
+
+### Improved
+- Highlight appearance.
+- Vertical spacing and visual rhythm.
+- Visual examples and documentation.
+- Beamer overlay visuals.
+
+### Notes
+`stepdiff` remains a visual token-level diffing package. It does not check mathematical correctness, does not use a CAS, and does not understand transformations semantically.
+
 ## 1.0.0-rc1 - Unreleased
 
 ### Added

@@ -1,0 +1,47 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+
+\title{A Polished stepdiff Note}
+\author{}
+\date{}
+
+\stepdiffsetup{
+  display=notes,
+  theme=soft,
+  layout=lecture,
+  highlight=background,
+  reason-style=muted
+}
+
+\begin{document}
+
+\maketitle
+
+\section*{Sum of the first integers}
+
+Pair the sum with a reversed copy. The visual highlights only show what changed between consecutive displayed lines.
+
+\[
+\begin{stepdiff}[frame=true]
+\step{S_n = 1 + 2 + \cdots + (n-1) + n}
+\step[reason={reverse order}]{S_n = n + (n-1) + \cdots + 2 + 1}
+\step[reason={add the two lines}]{2S_n = (n+1) + (n+1) + \cdots + (n+1)}
+\step[reason={count n terms}]{2S_n = n(n+1)}
+\step[reason={divide by 2}, diff=all, tag=final]{S_n = \frac{n(n+1)}{2}}
+\end{stepdiff}
+\]
+
+\section*{A derivative example}
+
+\[
+\begin{stepdiff}
+\step{g(x)=x^2\sin x}
+\step[reason={product rule}]{g'(x)=2x\sin x+x^2\cos x}
+\step[reason={evaluate at zero}, tag=final]{g'(0)=0}
+\end{stepdiff}
+\]
+
+\end{document}

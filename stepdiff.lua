@@ -1,5 +1,5 @@
 -- stepdiff.lua
--- Version: 1.0.0-rc1
+-- Version: 1.1.0-dev
 -- Author: Ernest Terjyan
 -- Description: LuaLaTeX package for step-by-step derivations with visual diffing.
 -- License: MIT
@@ -11,6 +11,7 @@
 
 local M = {}
 local steps = {}
+local current_options = { frame = false }
 
 -- ---------------------------------------------------------------------------
 -- Helpers
@@ -350,6 +351,19 @@ local function normalize_diff_mode(mode)
   return "auto"
 end
 
+local function normalize_tag(tag)
+  return strip_tex_sentinels(tag or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function normalize_bool(value)
+  value = strip_tex_sentinels(value or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+  return value == "true"
+end
+
+local function is_final_step(step)
+  return step ~= nil and step.tag == "final"
+end
+
 local function find_alignment_relation(tokens)
   for i, token in ipairs(tokens) do
     if is_relation_token(token.text) then
@@ -467,15 +481,18 @@ local function render_token_range(tokens, first_index, last_index, matched, alig
   return table.concat(out)
 end
 
-local function render_reason(reason)
+local function render_reason(reason, is_final)
   reason = strip_tex_sentinels(reason)
   if reason == "" then
     return "{}"
   end
+  if is_final then
+    return "\\SDmaybefinalreason{" .. reason .. "}"
+  end
   return "\\SDmaybereason{" .. reason .. "}"
 end
 
-local function make_step(math, reason, diff_mode, overlay)
+local function make_step(math, reason, diff_mode, overlay, tag)
   math = strip_tex_sentinels(math)
   reason = strip_tex_sentinels(reason)
   overlay = strip_tex_sentinels(overlay or "")
@@ -486,6 +503,7 @@ local function make_step(math, reason, diff_mode, overlay)
     reason = reason,
     diff_mode = diff_mode,
     overlay = overlay,
+    tag = normalize_tag(tag),
     tokens = tokenize(math)
   }
 end
@@ -553,8 +571,14 @@ end
 
 local function render_step_row(prev_step, step)
   local left, right = render_step_cells(prev_step, step)
-  local reason = render_reason(step.reason)
+  local final = is_final_step(step)
+  local reason = render_reason(step.reason, final)
   local overlay = step.overlay or ""
+
+  if final then
+    left = "\\SDfinalmath{" .. left .. "}"
+    right = "\\SDfinalmath{" .. right .. "}"
+  end
 
   return with_overlay(left, overlay)
     .. " & " .. with_overlay(right, overlay)
@@ -570,25 +594,35 @@ local function render_latex(step_list)
     rows[#rows + 1] = render_step_row(step_list[i - 1], step)
 
     if i < #step_list then
-      rows[#rows + 1] = "\\\\"
+      if is_final_step(step_list[i + 1]) then
+        rows[#rows + 1] = "\\\\[\\SDfinalbeforeskip]"
+      else
+        rows[#rows + 1] = "\\\\"
+      end
     end
   end
 
   rows[#rows + 1] = "\\end{aligned}"
 
-  return strip_tex_sentinels(table.concat(rows, " "))
+  local latex = table.concat(rows, " ")
+  if current_options.frame then
+    latex = "\\SDframed{" .. latex .. "}"
+  end
+
+  return strip_tex_sentinels(latex)
 end
 
 -- ---------------------------------------------------------------------------
 -- Public API
 -- ---------------------------------------------------------------------------
 
-function M.begin()
+function M.begin(frame)
   steps = {}
+  current_options = { frame = normalize_bool(frame) }
 end
 
-function M.add(math, reason, diff_mode, overlay)
-  steps[#steps + 1] = make_step(math, reason, diff_mode, overlay)
+function M.add(math, reason, diff_mode, overlay, tag)
+  steps[#steps + 1] = make_step(math, reason, diff_mode, overlay, tag)
 end
 
 function M.render()
@@ -602,6 +636,7 @@ M._test = {
   tokenize = tokenize,
   lcs_matches = lcs_matches,
   normalize_diff_mode = normalize_diff_mode,
+  normalize_tag = normalize_tag,
   is_relation_token = is_relation_token,
   find_alignment_relation = find_alignment_relation,
   make_step = make_step,

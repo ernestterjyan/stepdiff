@@ -7,26 +7,26 @@
 \author{}
 \date{}
 
-\stepdiffsetup{theme=soft, layout=lecture, highlight=background}
+\stepdiffsetup{display=slide, theme=soft, layout=lecture, highlight=background, reason-style=muted}
 
 \begin{document}
 
 \begin{frame}{Algebra reveal}
 \[
-\begin{stepdiff}
+\begin{stepdiff}[frame=true]
 \step<1->{a(x+b)}
 \step<2->[reason={distribute}]{ax+ab}
-\step<3->[reason={commute terms}]{ab+ax}
+\step<3->[reason={commute terms}, tag=final]{ab+ax}
 \end{stepdiff}
 \]
 \end{frame}
 
 \begin{frame}{Derivative reveal}
 \[
-\begin{stepdiff}[theme=minimal, highlight=underline]
+\begin{stepdiff}[display=slide, theme=focus, reason-style=badge]
 \step<1->{f(x)=x^2+3x}
 \step<2->[reason={differentiate}]{f'(x)=2x+3}
-\step<3->[reason={evaluate at x=3}, diff=all]{f'(3)=9}
+\step<3->[reason={evaluate at x=3}, diff=all, tag=final]{f'(3)=9}
 \end{stepdiff}
 \]
 \end{frame}

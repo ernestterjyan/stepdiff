@@ -4,9 +4,10 @@
 \begin{document}
 \begin{frame}{stepdiff beamer test}
 \[
-\begin{stepdiff}
+\begin{stepdiff}[display=slide, theme=focus, reason-style=badge]
 \step{f(x)=x^3+2x}
 \step[reason={differentiate}]{f'(x)=3x^2+2}
+\step[reason={final}, tag=final]{f'(1)=5}
 \end{stepdiff}
 \]
 \end{frame}

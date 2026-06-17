@@ -1,14 +1,14 @@
 # stepdiff
 
-`stepdiff` is a LuaLaTeX package for step-by-step mathematical derivations with visual token-level diffing between consecutive steps. It helps teachers, lecturers, and authors write clean derivations where changed parts stand out without turning the package into a computer algebra system.
+`stepdiff` is a LuaLaTeX package for step-by-step mathematical derivations with automatic visual diffing between consecutive lines. It is meant for lecture notes, worked examples, and Beamer slides where readers should quickly see what changed from one displayed step to the next.
 
-LuaLaTeX is required. `stepdiff` uses Lua for tokenization and diff rendering, so it does not work with pdfLaTeX.
+LuaLaTeX is required. `stepdiff` uses Lua for visual tokenization and diff rendering, so it does not work with pdfLaTeX.
+
+`stepdiff` performs visual token-level diffing. It does not verify mathematical correctness, does not use a CAS, and does not understand transformations semantically.
 
 ## Status
 
-Current target: `v1.0.0-rc1` release candidate.
-
-`stepdiff` is intended to be stable enough for lecture notes, worked examples, Beamer slides, and experimentation. The release candidate is not the final `v1.0.0` tag.
+Current target: `v1.1.0`.
 
 ![stepdiff demo](docs/assets/demo-preview.png)
 
@@ -58,26 +58,82 @@ make lua-test
 \end{document}
 ```
 
-The stable public API includes:
+## Visual presentation
+
+Visual options are set globally with `\stepdiffsetup{...}` or locally on a `stepdiff` environment. Local environment options override global defaults.
 
 ```latex
-\begin{stepdiff}[theme=soft, layout=lecture, highlight=background]
-...
+\stepdiffsetup{
+  display=notes,
+  theme=soft,
+  layout=lecture,
+  highlight=background,
+  reason-style=muted
+}
+
+\[
+\begin{stepdiff}[frame=true]
+\step{S_n = 1 + 2 + \cdots + n}
+\step[reason={pair terms}]{2S_n = n(n+1)}
+\step[reason={final formula}, diff=all, tag=final]{S_n = \frac{n(n+1)}{2}}
 \end{stepdiff}
-
-\step{...}
-\step[reason={...}]{...}
-\step[reason={...}, diff=false]{...}
-\step[reason={...}, diff=none]{...}
-\step[reason={...}, diff=all]{...}
-\step<2->{...}
-\step<2->[reason={...}]{...}
-
-\stepdiffsetup{theme=minimal, highlight=underline}
-
-\SDchanged{...}
-\SDreason{...}
+\]
 ```
+
+```latex
+\[
+\begin{stepdiff}[display=focus, theme=focus, reason-style=badge]
+\step{f(x)=x^2+2x}
+\step[reason={differentiate}]{f'(x)=2x+2}
+\step[reason={evaluate}, tag=final]{f'(3)=8}
+\end{stepdiff}
+\]
+```
+
+Display modes:
+
+- `display=notes`: balanced lecture-note spacing, subtle highlights, and muted reasons.
+- `display=slide`: more generous spacing and larger reason annotations for projected material.
+- `display=focus`: stronger changed-term emphasis and final-step weight for tutorials.
+
+Themes:
+
+- `theme=soft`: elegant note style with soft background highlights and muted reasons.
+- `theme=minimal`: print-friendly styling with less color.
+- `theme=focus`: higher contrast styling for tutorials and slides.
+
+Highlight modes:
+
+- `highlight=background`: changed chunks receive a soft background tint.
+- `highlight=underline`: changed chunks are underlined without a box.
+- `highlight=color`: changed chunks are colored directly.
+- `highlight=none`: no visible highlighting; layout and reasons still render.
+
+Reason styles:
+
+- `reason-style=plain`: small, simple annotations close to the original style.
+- `reason-style=muted`: subtle gray note styling for lecture notes.
+- `reason-style=badge`: compact label styling for stronger visual separation.
+
+Framed derivation blocks use `frame=true`:
+
+```latex
+\[
+\begin{stepdiff}[display=notes, frame=true]
+\step{x^2-1=(x-1)(x+1)}
+\step[reason={expand}]{x^2-1=x^2-1}
+\step[reason={result}, tag=final]{x^2-1=(x-1)(x+1)}
+\end{stepdiff}
+\]
+```
+
+Final-step emphasis uses `tag=final` on a step. It adds a little spacing before the line and applies subtle final-line styling. It also works with manual emphasis:
+
+```latex
+\step[reason={final formula}, diff=all, tag=final]{S_n = \frac{n(n+1)}{2}}
+```
+
+Global setup supports `display`, `theme`, `layout`, `highlight`, `reason-style`, `frame`, and `show-reasons`.
 
 ## Manual control
 
@@ -92,71 +148,9 @@ Automatic token-level diffing is approximate, so each step can choose a diff mod
 
 `diff=auto` is the default. Use `diff=false` or `diff=none` when highlighting is noisy. Use `diff=all` when the whole line should be emphasized.
 
-## Visual styles
-
-Visual options are set on the `stepdiff` environment. Environment options override global setup defaults.
-
-```latex
-\begin{stepdiff}[theme=soft, layout=lecture, highlight=background]
-\step{S_n = 1 + 2 + \cdots + n}
-\step[reason={pair terms}]{2S_n = n(n+1)}
-\step[reason={final formula}, diff=all]{S_n = \frac{n(n+1)}{2}}
-\end{stepdiff}
-```
-
-```latex
-\begin{stepdiff}[theme=minimal, highlight=underline]
-\step{x^2 - 1 = (x-1)(x+1)}
-\step[reason={expand}, diff=false]{x^2 - 1 = x^2 - 1}
-\end{stepdiff}
-```
-
-Supported options:
-
-- `theme=soft`
-- `theme=minimal`
-- `highlight=background`
-- `highlight=underline`
-- `highlight=color`
-- `highlight=none`
-- `layout=compact`
-- `layout=lecture`
-- `layout=wide`
-
-Legacy aliases `style=highlight` and `style=underline` remain available.
-
-## Global setup
-
-Use `\stepdiffsetup{...}` to set document-level defaults:
-
-```latex
-\stepdiffsetup{
-  theme=soft,
-  layout=lecture,
-  highlight=background
-}
-```
-
-Supported global keys are `theme`, `layout`, `highlight`, and `show-reasons`:
-
-```latex
-\stepdiffsetup{theme=minimal, highlight=underline}
-
-\begin{stepdiff}
-\step{x^2-1=(x-1)(x+1)}
-\step[reason={expand}]{x^2-1=x^2-1}
-\end{stepdiff}
-```
-
-```latex
-\stepdiffsetup{show-reasons=false}
-```
-
-A local environment option can re-enable reasons with `show-reasons=true`.
-
 ## Relation-aware alignment
 
-Lines containing a recognized relation are aligned at the first top-level relation token. Supported relation targets include:
+Lines containing a recognized relation are aligned at the first recognized relation token. Supported relation targets include:
 
 ```latex
 = \le \ge < > \approx \sim \equiv \Rightarrow \Longrightarrow
@@ -165,10 +159,10 @@ Lines containing a recognized relation are aligned at the first top-level relati
 Example:
 
 ```latex
-\begin{stepdiff}
+\begin{stepdiff}[display=notes, theme=soft]
 \step{a_n \le b_n}
 \step[reason={take limits}]{\lim a_n \le \lim b_n}
-\step[reason={conclude}]{L \le M}
+\step[reason={conclude}, tag=final]{L \le M}
 \end{stepdiff}
 ```
 
@@ -179,16 +173,14 @@ Relation detection is conservative and token-based. It avoids splitting inside c
 In Beamer documents, `\step` accepts overlay specifications:
 
 ```latex
-\begin{stepdiff}
+\begin{stepdiff}[display=slide, theme=focus, reason-style=badge]
 \step<1->{f(x)=x^2}
 \step<2->[reason={differentiate}]{f'(x)=2x}
-\step<3->[reason={evaluate at x=3}, diff=all]{f'(3)=6}
+\step<3->[reason={evaluate at x=3}, tag=final]{f'(3)=6}
 \end{stepdiff}
 ```
 
-The formula, reason annotation, and highlighting for a step appear together on the requested overlays. Visual options and global setup still apply.
-
-Overlay syntax is intended for Beamer. In non-Beamer documents, `stepdiff` accepts the syntax and renders the steps normally without overlay behavior.
+The formula, reason annotation, and highlighting for a step appear together on the requested overlays. In non-Beamer documents, overlay syntax is accepted and rendered without overlay behavior.
 
 ## Customization
 
@@ -199,7 +191,7 @@ The main customization hooks are:
 \renewcommand{\SDreason}[1]{\normalfont\scriptsize\itshape #1}
 ```
 
-`\SDchanged{...}` receives changed math content and should remain safe in math mode. `\SDreason{...}` styles reason text inside the annotation column.
+`\SDchanged{...}` receives changed math content and should remain safe in math mode. `\SDreason{...}` styles reason text inside the annotation column. `\SDfinalmath{...}` and `\SDfinalreason{...}` can be redefined for custom final-step presentation.
 
 Reasons can also be hidden and shown with:
 
@@ -214,11 +206,12 @@ For new documents, prefer `\stepdiffsetup{show-reasons=false}` when hiding reaso
 
 The repository includes:
 
-- `examples/demo.tex`: polished main release-candidate demo.
+- `examples/demo.tex`: polished main v1.1 demo.
+- `examples/visual-styles.tex`: display modes, themes, highlights, reason styles, frames, and final tags.
+- `examples/polished-notes.tex`: realistic lecture-note style derivation.
+- `examples/relations.tex`: relation-aware alignment examples.
 - `examples/algebra.tex`: expansion and factorization examples.
 - `examples/calculus.tex`: derivative and logarithmic differentiation examples.
-- `examples/relations.tex`: relation-aware alignment examples.
-- `examples/visual-styles.tex`: themes, highlight modes, and layout examples.
 - `examples/manual-control.tex`: diff modes and customization examples.
 - `examples/beamer-demo.tex`: minimal Beamer frame using `stepdiff`.
 - `examples/beamer-overlays.tex`: Beamer overlay reveals with visual styles.
@@ -241,18 +234,17 @@ make examples
 
 - Diffing is visual and token-level.
 - Removed tokens are not shown because only the current line is rendered.
-- Complex LaTeX macros may not always diff perfectly.
+- Complex macros may not always diff perfectly.
 - Highlighting can be approximate for dense or macro-heavy notation.
-- Relation alignment uses the first recognized top-level relation token.
+- Relation alignment uses the first recognized relation token.
 - Beamer overlay support is intentionally basic and applies to whole step rows.
 
-## Roadmap after v1.0
+## Roadmap after v1.1
 
 - Improve tokenizer coverage for more common LaTeX math macros.
 - Add more examples from lecture-note workflows.
-- Consider additional visual presets for print and presentation use.
-- Explore final-step emphasis controls beyond `diff=all`.
 - Prepare CTAN-style packaging metadata.
+- Consider optional integrations only if they remain clearly separate from the visual diffing core.
 
 ## License
 

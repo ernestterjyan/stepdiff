@@ -3,16 +3,16 @@
 \usepackage{stepdiff}
 \begin{document}
 \[
-\begin{stepdiff}[style=underline]
+\begin{stepdiff}[display=focus, theme=focus, reason-style=badge]
 \step{x^2-1 = (x-1)(x+1)}
 \step[reason={auto}, diff=auto]{x^2-1 = x^2-1}
 \step[reason={none}, diff=none]{x^2-1 = x^2-1}
-\step[reason={all}, diff=all]{x^2-1 = (x-1)(x+1)}
+\step[reason={all final}, diff=all, tag=final]{x^2-1 = (x-1)(x+1)}
 \end{stepdiff}
 \]
 \SDhidereasons
 \[
-\begin{stepdiff}[style=highlight]
+\begin{stepdiff}[style=highlight, display=notes, frame=true]
 \step{g(x)=x^2}
 \step[reason={hidden}]{g'(x)=2x}
 \end{stepdiff}

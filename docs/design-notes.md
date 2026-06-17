@@ -32,33 +32,43 @@ This deliberately depends on tokenizer boundaries. Braced groups, fractions, roo
 
 ## Visual Presentation Controls
 
-Themes, highlight modes, and layout modes are TeX-side presentation controls. They change how existing visual diffs are displayed while leaving tokenization and relation-aware alignment conceptually unchanged.
+The v1.1 visual layer is TeX-side presentation. It does not change the diffing model or add semantic reasoning.
 
-The styling layer remains deliberately small: `\SDchanged{...}` controls changed math chunks, `\SDreason{...}` controls reason text, and layout options adjust row spacing and the reason-column separation. These hooks stay customizable so authors can adapt the package to lecture notes, print handouts, or house styles.
+Display modes set high-level rhythm:
 
-## v1.0.0-rc1 Direction
+- `display=notes` for balanced lecture-note output.
+- `display=slide` for larger, more spacious projected output.
+- `display=focus` for stronger changed-term and final-step emphasis.
 
-The release-candidate milestone stabilizes the public API rather than changing the diffing model. It adds two author-facing conveniences:
+Themes set coordinated colors and default highlight/reason treatments:
 
-- Beamer overlay syntax for `\step<...>{...}`.
-- `\stepdiffsetup{...}` for document-level visual defaults.
+- `theme=soft` for polished notes.
+- `theme=minimal` for print-friendly documents.
+- `theme=focus` for tutorials and slides.
+
+Highlight modes, reason styles, framed blocks, and final-step emphasis are intentionally small hooks around the existing rendered tokens. `\SDchanged{...}` controls changed math chunks, `\SDreason{...}` controls reason text, `\SDfinalmath{...}` and `\SDfinalreason{...}` control final-step presentation, and `frame=true` wraps the aligned block in a lightweight box.
+
+## Global Setup
+
+`\stepdiffsetup{...}` stores a default key list for document-level visual defaults. Each environment applies package defaults, then global setup, then local environment options. Supported visual defaults include `display`, `theme`, `layout`, `highlight`, `reason-style`, `frame`, and `show-reasons`.
+
+## Beamer Overlays
 
 Overlay support is row-level. The formula cells and reason annotation for a step are wrapped with Beamer overlay commands so they appear together. In non-Beamer documents, overlay syntax is accepted and rendered without overlay behavior.
 
-Global setup remains simple: it stores a default key list for `theme`, `layout`, `highlight`, and reason visibility. Each `stepdiff` environment applies compact defaults, then global setup, then local environment options.
+The visual system is designed to compile in Beamer without additional packages. Framed blocks use standard LaTeX color boxes rather than `tcolorbox`.
 
 ## Testing Direction
 
 The repository uses both compile tests and Lua-side tests.
 
-Compile tests protect the LaTeX API, Beamer usage, visual style options, relation-aware alignment, global setup, and overlay syntax. Lua tests protect tokenizer behavior, diff rendering, relation detection, and overlay row rendering.
+Compile tests protect the LaTeX API, Beamer usage, visual style options, relation-aware alignment, global setup, frame rendering, final tags, and overlay syntax. Lua tests protect tokenizer behavior, diff rendering, relation detection, and overlay row rendering.
 
 These tests are about visual and structural reliability. They do not check mathematical correctness.
 
 ## Future Ideas
 
 - Continue improving the math atom tokenizer for scripts, fractions, roots, delimiters, relation tokens, and common operator forms.
-- Add more polished final-step emphasis controls beyond `diff=all`.
-- Add more robust examples from lecture notes and slide decks.
+- Add more polished examples from lecture notes and slide decks.
 - Prepare CTAN-style packaging metadata.
-- Consider optional semantic integrations only if they can remain clearly separate from the visual diffing core.
+- Consider optional integrations only if they can remain clearly separate from the visual diffing core.

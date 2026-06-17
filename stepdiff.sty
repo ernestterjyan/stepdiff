@@ -1,5 +1,5 @@
 % stepdiff
-% Version: 1.0.0-rc1
+% Version: 1.1.0-dev
 % Author: Ernest Terjyan
 % Description: LuaLaTeX package for step-by-step derivations with visual diffing.
 % License: MIT
@@ -9,7 +9,7 @@
 % ---------------------------------------------------------------------------
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{stepdiff}
-  [2026/06/13 v1.0.0-rc1 Token-level diffs for step-by-step derivations]
+  [2026/06/14 v1.1.0-dev Token-level diffs for step-by-step derivations]
 
 % ---------------------------------------------------------------------------
 % Required packages
@@ -17,6 +17,22 @@
 \RequirePackage{amsmath}
 \RequirePackage{xcolor}
 \RequirePackage{xparse}
+
+% ---------------------------------------------------------------------------
+% Color palette
+% ---------------------------------------------------------------------------
+\definecolor{SDSoftHighlight}{RGB}{255,245,214}
+\definecolor{SDFocusHighlight}{RGB}{255,232,176}
+\definecolor{SDMinimalHighlight}{RGB}{238,238,238}
+\definecolor{SDSoftAccent}{RGB}{28,105,122}
+\definecolor{SDFocusAccent}{RGB}{145,71,28}
+\definecolor{SDReasonMuted}{RGB}{104,112,121}
+\definecolor{SDReasonBadgeBg}{RGB}{240,243,246}
+\definecolor{SDReasonBadgeFg}{RGB}{72,79,88}
+\definecolor{SDFrameBorder}{RGB}{214,219,225}
+\definecolor{SDFrameBg}{RGB}{250,251,252}
+\definecolor{SDFinalAccent}{RGB}{23,92,76}
+\definecolor{SDFinalBg}{RGB}{231,247,239}
 
 % ---------------------------------------------------------------------------
 % Beamer detection
@@ -30,19 +46,46 @@
 % User customization hooks
 % ---------------------------------------------------------------------------
 % Redefine these commands in the document preamble to change the visual style.
-\providecommand{\SDchanged}[1]{%
+\newcommand{\SDhighlightbg}{SDSoftHighlight}
+\newcommand{\SDhighlightfg}{SDSoftAccent}
+\newcommand{\SDunderlinecolor}{SDSoftAccent}
+\newcommand{\SDreasoncolor}{SDReasonMuted}
+\newcommand{\SDreasonbadgebg}{SDReasonBadgeBg}
+\newcommand{\SDreasonbadgefg}{SDReasonBadgeFg}
+\newcommand{\SDfinalcolor}{SDFinalAccent}
+\newcommand{\SDframeborder}{SDFrameBorder}
+\newcommand{\SDframebackground}{SDFrameBg}
+\newcommand{\SDreasonsize}{\scriptsize}
+\newlength{\SDframepadding}
+\newlength{\SDframerule}
+\newlength{\SDfinalbeforeskip}
+\setlength{\SDframepadding}{5pt}
+\setlength{\SDframerule}{0.35pt}
+\setlength{\SDfinalbeforeskip}{3pt}
+
+
+\newcommand{\SDchangedinternal}[1]{%
   \begingroup
-  \setlength{\fboxsep}{1pt}%
+  \setlength{\fboxsep}{1.25pt}%
   \mathchoice
-    {\hbox{\colorbox{yellow!25}{$\displaystyle #1$}}}%
-    {\hbox{\colorbox{yellow!25}{$\textstyle #1$}}}%
-    {\hbox{\colorbox{yellow!25}{$\scriptstyle #1$}}}%
-    {\hbox{\colorbox{yellow!25}{$\scriptscriptstyle #1$}}}%
+    {\hbox{\colorbox{\SDhighlightbg}{$\displaystyle #1$}}}%
+    {\hbox{\colorbox{\SDhighlightbg}{$\textstyle #1$}}}%
+    {\hbox{\colorbox{\SDhighlightbg}{$\scriptstyle #1$}}}%
+    {\hbox{\colorbox{\SDhighlightbg}{$\scriptscriptstyle #1$}}}%
   \endgroup
 }
-\providecommand{\SDreason}[1]{%
-  \normalfont\scriptsize\itshape\color{black!55}#1%
+\providecommand{\SDchanged}[1]{\SDchangedinternal{#1}}
+\newcommand{\SDreasoninternal}[1]{%
+  \normalfont\SDreasonsize\sffamily\color{\SDreasoncolor}#1%
 }
+\providecommand{\SDreason}[1]{\SDreasoninternal{#1}}
+\providecommand{\SDfinalmath}[1]{%
+  \begingroup\color{\SDfinalcolor}#1\endgroup
+}
+\newcommand{\SDfinalreasoninternal}[1]{%
+  \normalfont\SDreasonsize\sffamily\bfseries\color{\SDfinalcolor}#1%
+}
+\providecommand{\SDfinalreason}[1]{\SDfinalreasoninternal{#1}}
 \providecommand{\SDreasonsep}{\quad}
 \newif\ifSDshowreasons
 \SDshowreasonstrue
@@ -55,55 +98,141 @@
     {}%
   \fi
 }
+\providecommand{\SDmaybefinalreason}[1]{%
+  \ifSDshowreasons
+    \SDreasonsep\text{\SDfinalreason{#1}}%
+  \else
+    {}%
+  \fi
+}
+\newcommand{\SDframebox}[2]{%
+  \begingroup
+  \setlength{\fboxsep}{\SDframepadding}%
+  \setlength{\fboxrule}{\SDframerule}%
+  \hbox{\fcolorbox{\SDframeborder}{\SDframebackground}{$#1 #2$}}%
+  \endgroup
+}
+\providecommand{\SDframed}[1]{%
+  \mathchoice
+    {\SDframebox{\displaystyle}{#1}}%
+    {\SDframebox{\textstyle}{#1}}%
+    {\SDframebox{\scriptstyle}{#1}}%
+    {\SDframebox{\scriptscriptstyle}{#1}}%
+}
 
 % ---------------------------------------------------------------------------
 % Highlight modes
 % ---------------------------------------------------------------------------
 \newcommand{\SDhighlightbackground}{%
-  \renewcommand{\SDchanged}[1]{%
+  \renewcommand{\SDchangedinternal}[1]{%
     \begingroup
-    \setlength{\fboxsep}{1pt}%
+    \setlength{\fboxsep}{1.25pt}%
     \mathchoice
-      {\hbox{\colorbox{yellow!25}{$\displaystyle ##1$}}}%
-      {\hbox{\colorbox{yellow!25}{$\textstyle ##1$}}}%
-      {\hbox{\colorbox{yellow!25}{$\scriptstyle ##1$}}}%
-      {\hbox{\colorbox{yellow!25}{$\scriptscriptstyle ##1$}}}%
+      {\hbox{\colorbox{\SDhighlightbg}{$\displaystyle ##1$}}}%
+      {\hbox{\colorbox{\SDhighlightbg}{$\textstyle ##1$}}}%
+      {\hbox{\colorbox{\SDhighlightbg}{$\scriptstyle ##1$}}}%
+      {\hbox{\colorbox{\SDhighlightbg}{$\scriptscriptstyle ##1$}}}%
     \endgroup
   }%
 }
 \newcommand{\SDhighlightunderline}{%
-  \renewcommand{\SDchanged}[1]{%
+  \renewcommand{\SDchangedinternal}[1]{%
     \begingroup
-    \underline{##1}%
+    \color{\SDunderlinecolor}\underline{\color{black}##1}%
     \endgroup
   }%
 }
 \newcommand{\SDhighlightcolor}{%
-  \renewcommand{\SDchanged}[1]{%
+  \renewcommand{\SDchangedinternal}[1]{%
     \begingroup
-    \color{blue!60!black}%
+    \color{\SDhighlightfg}%
     ##1%
     \endgroup
   }%
 }
 \newcommand{\SDhighlightnone}{%
-  \renewcommand{\SDchanged}[1]{##1}%
+  \renewcommand{\SDchangedinternal}[1]{##1}%
+}
+
+% ---------------------------------------------------------------------------
+% Reason styles
+% ---------------------------------------------------------------------------
+\newcommand{\SDreasonstyleplain}{%
+  \renewcommand{\SDreasoninternal}[1]{%
+    \normalfont\SDreasonsize\itshape\color{\SDreasoncolor}##1%
+  }%
+  \renewcommand{\SDfinalreasoninternal}[1]{%
+    \normalfont\SDreasonsize\itshape\color{\SDfinalcolor}##1%
+  }%
+}
+\newcommand{\SDreasonstylemuted}{%
+  \renewcommand{\SDreasoninternal}[1]{%
+    \normalfont\SDreasonsize\sffamily\color{\SDreasoncolor}##1%
+  }%
+  \renewcommand{\SDfinalreasoninternal}[1]{%
+    \normalfont\SDreasonsize\sffamily\bfseries\color{\SDfinalcolor}##1%
+  }%
+}
+\newcommand{\SDreasonstylebadge}{%
+  \renewcommand{\SDreasoninternal}[1]{%
+    \begingroup
+    \setlength{\fboxsep}{1.6pt}%
+    \colorbox{\SDreasonbadgebg}{%
+      \normalfont\SDreasonsize\sffamily\color{\SDreasonbadgefg}##1%
+    }%
+    \endgroup
+  }%
+  \renewcommand{\SDfinalreasoninternal}[1]{%
+    \begingroup
+    \setlength{\fboxsep}{1.8pt}%
+    \colorbox{SDFinalBg}{%
+      \normalfont\SDreasonsize\sffamily\bfseries\color{\SDfinalcolor}##1%
+    }%
+    \endgroup
+  }%
 }
 
 % ---------------------------------------------------------------------------
 % Themes
 % ---------------------------------------------------------------------------
 \newcommand{\SDthemesoft}{%
+  \renewcommand{\SDhighlightbg}{SDSoftHighlight}%
+  \renewcommand{\SDhighlightfg}{SDSoftAccent}%
+  \renewcommand{\SDunderlinecolor}{SDSoftAccent}%
+  \renewcommand{\SDreasoncolor}{SDReasonMuted}%
+  \renewcommand{\SDreasonbadgebg}{SDReasonBadgeBg}%
+  \renewcommand{\SDreasonbadgefg}{SDReasonBadgeFg}%
+  \renewcommand{\SDfinalcolor}{SDFinalAccent}%
+  \renewcommand{\SDframeborder}{SDFrameBorder}%
+  \renewcommand{\SDframebackground}{SDFrameBg}%
   \SDhighlightbackground
-  \renewcommand{\SDreason}[1]{%
-    \normalfont\scriptsize\itshape\color{black!55}##1%
-  }%
+  \SDreasonstylemuted
 }
 \newcommand{\SDthememinimal}{%
+  \renewcommand{\SDhighlightbg}{SDMinimalHighlight}%
+  \renewcommand{\SDhighlightfg}{black}%
+  \renewcommand{\SDunderlinecolor}{black!70}%
+  \renewcommand{\SDreasoncolor}{black!58}%
+  \renewcommand{\SDreasonbadgebg}{SDMinimalHighlight}%
+  \renewcommand{\SDreasonbadgefg}{black!70}%
+  \renewcommand{\SDfinalcolor}{black}%
+  \renewcommand{\SDframeborder}{black!28}%
+  \renewcommand{\SDframebackground}{white}%
   \SDhighlightunderline
-  \renewcommand{\SDreason}[1]{%
-    \normalfont\scriptsize\itshape\color{black!65}##1%
-  }%
+  \SDreasonstyleplain
+}
+\newcommand{\SDthemefocus}{%
+  \renewcommand{\SDhighlightbg}{SDFocusHighlight}%
+  \renewcommand{\SDhighlightfg}{SDFocusAccent}%
+  \renewcommand{\SDunderlinecolor}{SDFocusAccent}%
+  \renewcommand{\SDreasoncolor}{black!62}%
+  \renewcommand{\SDreasonbadgebg}{SDFinalBg}%
+  \renewcommand{\SDreasonbadgefg}{SDFocusAccent}%
+  \renewcommand{\SDfinalcolor}{SDFocusAccent}%
+  \renewcommand{\SDframeborder}{SDFocusAccent!45}%
+  \renewcommand{\SDframebackground}{SDFrameBg}%
+  \SDhighlightbackground
+  \SDreasonstylebadge
 }
 
 % ---------------------------------------------------------------------------
@@ -112,14 +241,50 @@
 \newcommand{\SDlayoutcompact}{%
   \setlength{\jot}{3pt}%
   \renewcommand{\SDreasonsep}{\quad}%
+  \setlength{\SDfinalbeforeskip}{2pt}%
 }
 \newcommand{\SDlayoutlecture}{%
-  \setlength{\jot}{6pt}%
+  \setlength{\jot}{5.5pt}%
   \renewcommand{\SDreasonsep}{\qquad}%
+  \setlength{\SDfinalbeforeskip}{3pt}%
 }
 \newcommand{\SDlayoutwide}{%
-  \setlength{\jot}{4pt}%
+  \setlength{\jot}{5pt}%
   \renewcommand{\SDreasonsep}{\hspace{3em}}%
+  \setlength{\SDfinalbeforeskip}{3pt}%
+}
+
+% ---------------------------------------------------------------------------
+% Display modes
+% ---------------------------------------------------------------------------
+\newcommand{\SDdisplaynotes}{%
+  \SDlayoutlecture
+  \renewcommand{\SDreasonsize}{\scriptsize}%
+  \setlength{\SDframepadding}{5pt}%
+  \setlength{\SDframerule}{0.35pt}%
+  \setlength{\SDfinalbeforeskip}{3pt}%
+  \SDreasonstylemuted
+}
+\newcommand{\SDdisplayslide}{%
+  \setlength{\jot}{8pt}%
+  \renewcommand{\SDreasonsep}{\hspace{2.4em}}%
+  \renewcommand{\SDreasonsize}{\small}%
+  \setlength{\SDframepadding}{7pt}%
+  \setlength{\SDframerule}{0.45pt}%
+  \setlength{\SDfinalbeforeskip}{5pt}%
+  \SDreasonstylemuted
+}
+\newcommand{\SDdisplayfocus}{%
+  \setlength{\jot}{7pt}%
+  \renewcommand{\SDreasonsep}{\hspace{2em}}%
+  \renewcommand{\SDreasonsize}{\scriptsize}%
+  \setlength{\SDframepadding}{6pt}%
+  \setlength{\SDframerule}{0.45pt}%
+  \setlength{\SDfinalbeforeskip}{5pt}%
+  \renewcommand{\SDhighlightbg}{SDFocusHighlight}%
+  \renewcommand{\SDhighlightfg}{SDFocusAccent}%
+  \SDhighlightbackground
+  \SDreasonstylebadge
 }
 
 % ---------------------------------------------------------------------------
@@ -142,6 +307,8 @@
 \tl_new:N \l__stepdiff_reason_tl
 \tl_new:N \l__stepdiff_diff_tl
 \tl_new:N \l__stepdiff_overlay_tl
+\tl_new:N \l__stepdiff_tag_tl
+\tl_new:N \l__stepdiff_frame_tl
 \cs_generate_variant:Nn \keys_set:nn { nV }
 
 \keys_define:nn { stepdiff / step }
@@ -149,14 +316,21 @@
     reason .tl_set:N = \l__stepdiff_reason_tl,
     reason .initial:n = {},
     diff .tl_set:N = \l__stepdiff_diff_tl,
-    diff .initial:n = auto
+    diff .initial:n = auto,
+    tag .tl_set:N = \l__stepdiff_tag_tl,
+    tag .initial:n = {}
   }
 
 \keys_define:nn { stepdiff / env }
   {
+    display .choice:,
+    display / notes .code:n = { \SDdisplaynotes },
+    display / slide .code:n = { \SDdisplayslide },
+    display / focus .code:n = { \SDdisplayfocus },
     theme .choice:,
     theme / soft .code:n = { \SDthemesoft },
     theme / minimal .code:n = { \SDthememinimal },
+    theme / focus .code:n = { \SDthemefocus },
     layout .choice:,
     layout / compact .code:n = { \SDlayoutcompact },
     layout / lecture .code:n = { \SDlayoutlecture },
@@ -169,6 +343,13 @@
     show-reasons .choice:,
     show-reasons / true .code:n = { \SDshowreasons },
     show-reasons / false .code:n = { \SDhidereasons },
+    reason-style .choice:,
+    reason-style / plain .code:n = { \SDreasonstyleplain },
+    reason-style / muted .code:n = { \SDreasonstylemuted },
+    reason-style / badge .code:n = { \SDreasonstylebadge },
+    frame .choice:,
+    frame / true .code:n = { \tl_set:Nn \l__stepdiff_frame_tl { true } },
+    frame / false .code:n = { \tl_set:Nn \l__stepdiff_frame_tl { false } },
     style .choice:,
     style / highlight .code:n = { \SDstylehighlight },
     style / underline .code:n = { \SDstyleunderline }
@@ -188,10 +369,12 @@
 \NewDocumentEnvironment{stepdiff}{ O{} }
   {
     \group_begin:
-      \SDlayoutcompact
+      \tl_set:Nn \l__stepdiff_frame_tl { false }
+      \SDthemesoft
+      \SDdisplaynotes
       \keys_set:nV { stepdiff / env } \g__stepdiff_setup_tl
       \keys_set:nn { stepdiff / env } { #1 }
-      \directlua{stepdiff.begin()}
+      \directlua{stepdiff.begin("\luaescapestring{\tl_use:N \l__stepdiff_frame_tl}")}
   }
   {
       \directlua{stepdiff.render()}
@@ -212,6 +395,7 @@
           \fi
         }
       \tl_clear:N \l__stepdiff_reason_tl
+      \tl_clear:N \l__stepdiff_tag_tl
       \tl_set:Nn \l__stepdiff_diff_tl { auto }
       \keys_set:nn { stepdiff / step } { #2 }
       \directlua{
@@ -219,7 +403,8 @@
           "\luaescapestring{\detokenize{#3}}",
           "\luaescapestring{\tl_use:N \l__stepdiff_reason_tl}",
           "\luaescapestring{\tl_use:N \l__stepdiff_diff_tl}",
-          "\luaescapestring{\tl_use:N \l__stepdiff_overlay_tl}"
+          "\luaescapestring{\tl_use:N \l__stepdiff_overlay_tl}",
+          "\luaescapestring{\tl_use:N \l__stepdiff_tag_tl}"
         )
       }
     \group_end:

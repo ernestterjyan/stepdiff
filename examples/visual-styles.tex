@@ -12,80 +12,98 @@
 
 \maketitle
 
-\section*{Soft lecture theme}
+\section*{Display modes}
 
 \[
-\begin{stepdiff}[theme=soft, layout=lecture, highlight=background]
+\begin{stepdiff}[display=notes, theme=soft, reason-style=muted]
 \step{S_n = 1 + 2 + \cdots + n}
 \step[reason={pair terms}]{2S_n = n(n+1)}
-\step[reason={final formula}, diff=all]{S_n = \frac{n(n+1)}{2}}
+\step[reason={final formula}, diff=all, tag=final]{S_n = \frac{n(n+1)}{2}}
 \end{stepdiff}
 \]
 
-\section*{Minimal theme}
+\[
+\begin{stepdiff}[display=slide, theme=soft, frame=true]
+\step{f(x)=x^2+2x}
+\step[reason={differentiate}]{f'(x)=2x+2}
+\step[reason={evaluate}, tag=final]{f'(3)=8}
+\end{stepdiff}
+\]
 
 \[
-\begin{stepdiff}[theme=minimal, highlight=underline]
-\step{x^2 - 1 = (x-1)(x+1)}
-\step[reason={expand}, diff=false]{x^2 - 1 = x^2 - 1}
-\step[reason={restore identity}]{x^2 - 1 = (x-1)(x+1)}
+\begin{stepdiff}[display=focus, theme=focus, reason-style=badge]
+\step{(x+1)^2}
+\step[reason={expand}]{x^2+2x+1}
+\step[reason={final}, tag=final]{x^2+2x+1}
+\end{stepdiff}
+\]
+
+\section*{Themes}
+
+\[
+\begin{stepdiff}[theme=soft]
+\step{a=b}
+\step[reason={soft}]{a=c}
+\end{stepdiff}
+\qquad
+\begin{stepdiff}[theme=minimal]
+\step{a=b}
+\step[reason={minimal}]{a=c}
+\end{stepdiff}
+\]
+
+\[
+\begin{stepdiff}[theme=focus, display=focus]
+\step{a=b}
+\step[reason={focus}, tag=final]{a=c}
 \end{stepdiff}
 \]
 
 \section*{Highlight modes}
 
-\noindent\small\emph{In order: \texttt{highlight=background}, \texttt{highlight=underline}, \texttt{highlight=color}, \texttt{highlight=none}.}\normalsize
-
 \[
 \begin{stepdiff}[highlight=background]
-\step{f(x) = x^2 + 2x}
-\step[reason={differentiate}]{f'(x) = 2x + 2}
+\step{x=1}
+\step[reason={background}]{x=2}
 \end{stepdiff}
-\]
-
-\[
+\qquad
 \begin{stepdiff}[highlight=underline]
-\step{a_n \le b_n}
-\step[reason={take limits}]{\lim a_n \le \lim b_n}
+\step{x=1}
+\step[reason={underline}]{x=2}
 \end{stepdiff}
 \]
 
 \[
 \begin{stepdiff}[highlight=color]
-\step{\sin x \sim x}
-\step[reason={small angle}]{\sin x \approx x}
+\step{x=1}
+\step[reason={color}]{x=2}
 \end{stepdiff}
-\]
-
-\[
+\qquad
 \begin{stepdiff}[highlight=none]
-\step{P \Rightarrow Q}
-\step[reason={add hypothesis}]{P \wedge R \Rightarrow Q}
+\step{x=1}
+\step[reason={none}]{x=2}
 \end{stepdiff}
 \]
 
-\section*{Layout modes}
-
-\noindent\small\emph{In order: \texttt{layout=compact}, \texttt{layout=lecture}, \texttt{layout=wide}.}\normalsize
+\section*{Reason styles and framing}
 
 \[
-\begin{stepdiff}[layout=compact]
-\step{g(x)=x^3}
-\step[reason={differentiate}]{g'(x)=3x^2}
+\begin{stepdiff}[reason-style=plain]
+\step{u=v}
+\step[reason={plain}]{u=w}
 \end{stepdiff}
-\]
-
-\[
-\begin{stepdiff}[layout=lecture]
-\step{h(x)=\log x}
-\step[reason={differentiate}]{h'(x)=\frac{1}{x}}
+\qquad
+\begin{stepdiff}[reason-style=muted]
+\step{u=v}
+\step[reason={muted}]{u=w}
 \end{stepdiff}
 \]
 
 \[
-\begin{stepdiff}[layout=wide]
-\step{A \equiv B}
-\step[reason={substitute definition}]{A \equiv C}
+\begin{stepdiff}[reason-style=badge, frame=true]
+\step{u=v}
+\step[reason={badge}]{u=w}
+\step[reason={final badge}, tag=final]{u=z}
 \end{stepdiff}
 \]
 

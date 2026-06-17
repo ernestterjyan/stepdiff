@@ -4,11 +4,17 @@
 \usepackage{xcolor}
 \usepackage{stepdiff}
 
-\title{stepdiff v1.0.0-rc1 Demo}
+\title{stepdiff v1.1.0 Demo}
 \author{}
 \date{}
 
-\stepdiffsetup{theme=soft, layout=lecture, highlight=background}
+\stepdiffsetup{
+  display=notes,
+  theme=soft,
+  layout=lecture,
+  highlight=background,
+  reason-style=muted
+}
 
 \begin{document}
 
@@ -17,31 +23,32 @@
 \section*{Algebra expansion}
 
 \[
-\begin{stepdiff}
-\step{a(x+b)}
-\step[reason={distribute}]{ax + ab}
-\step[reason={commute terms}]{ab + ax}
+\begin{stepdiff}[frame=true]
+\step{(x+2)(x+3)}
+\step[reason={distribute}]{x(x+3)+2(x+3)}
+\step[reason={collect terms}]{x^2+5x+6}
+\step[reason={final form}, tag=final]{x^2+5x+6}
 \end{stepdiff}
 \]
 
 \section*{Relation-aware derivation}
 
 \[
-\begin{stepdiff}
+\begin{stepdiff}[layout=wide]
 \step{a_n \le b_n}
 \step[reason={take limits}]{\lim a_n \le \lim b_n}
-\step[reason={conclude}, diff=all]{L \le M}
+\step[reason={identify limits}, tag=final]{L \le M}
 \end{stepdiff}
 \]
 
 \section*{Derivative calculation}
 
 \[
-\begin{stepdiff}[layout=compact]
+\begin{stepdiff}[display=focus, theme=focus, reason-style=badge]
 \step{f(x) = x^3 + 2x}
 \step[reason={differentiate}]{f'(x) = 3x^2 + 2}
 \step[reason={evaluate at x=2}]{f'(2) = 3\cdot 2^2 + 2}
-\step[reason={simplify}]{f'(2) = 14}
+\step[reason={final value}, tag=final]{f'(2) = 14}
 \end{stepdiff}
 \]
 
@@ -52,18 +59,19 @@
 \step{x^2 - 1 = (x-1)(x+1)}
 \step[reason={automatic diff}, diff=auto]{x^2 - 1 = x^2 - 1}
 \step[reason={suppress noisy highlight}, diff=false]{x^2 - 1 = x^2 - 1}
-\step[reason={emphasize identity}, diff=all]{x^2 - 1 = (x-1)(x+1)}
+\step[reason={emphasize identity}, diff=all, tag=final]{x^2 - 1 = (x-1)(x+1)}
 \end{stepdiff}
 \]
 
 \section*{Customization hook}
 
 \begingroup
-\renewcommand{\SDchanged}[1]{\begingroup\color{red!70!black}#1\endgroup}
+\renewcommand{\SDchanged}[1]{\begingroup\color{red!65!black}#1\endgroup}
+\renewcommand{\SDreason}[1]{\normalfont\scriptsize\sffamily\color{black!55}#1}
 \[
-\begin{stepdiff}
+\begin{stepdiff}[frame=true]
 \step{p(x) = x^2 + 2x + 1}
-\step[reason={custom highlight style}]{p(x) = (x+1)^2}
+\step[reason={custom highlight style}, tag=final]{p(x) = (x+1)^2}
 \end{stepdiff}
 \]
 \endgroup

@@ -4,73 +4,40 @@
 \begin{document}
 
 \[
-\begin{stepdiff}[theme=soft]
-\step{x = 1}
-\step[reason={soft theme}]{x = 2}
+\begin{stepdiff}[display=notes, theme=soft, highlight=background, reason-style=muted, frame=true]
+\step{S_n = 1 + 2 + \cdots + n}
+\step[reason={pair terms}]{2S_n = n(n+1)}
+\step[reason={final formula}, diff=all, tag=final]{S_n = \frac{n(n+1)}{2}}
 \end{stepdiff}
 \]
 
 \[
-\begin{stepdiff}[theme=minimal]
-\step{x = 1}
-\step[reason={minimal theme}]{x = 2}
+\begin{stepdiff}[display=slide, theme=minimal, highlight=underline, reason-style=plain]
+\step{x^2 - 1 = (x-1)(x+1)}
+\step[reason={expand}, diff=false]{x^2 - 1 = x^2 - 1}
+\step[reason={restore}, tag=final]{x^2 - 1 = (x-1)(x+1)}
 \end{stepdiff}
 \]
 
 \[
-\begin{stepdiff}[highlight=background]
-\step{a=b}
-\step[reason={background}]{a=c}
+\begin{stepdiff}[display=focus, theme=focus, highlight=color, reason-style=badge]
+\step{f(x)=x^2+2x}
+\step[reason={differentiate}]{f'(x)=2x+2}
+\step[reason={evaluate}, tag=final]{f'(3)=8}
 \end{stepdiff}
 \]
 
 \[
-\begin{stepdiff}[highlight=underline]
-\step{a=b}
-\step[reason={underline}]{a=c}
-\end{stepdiff}
-\]
-
-\[
-\begin{stepdiff}[highlight=color]
-\step{a=b}
-\step[reason={color}]{a=c}
-\end{stepdiff}
-\]
-
-\[
-\begin{stepdiff}[highlight=none]
-\step{a=b}
-\step[reason={none}]{a=c}
-\end{stepdiff}
-\]
-
-\[
-\begin{stepdiff}[layout=compact]
-\step{S_n = 1 + \cdots + n}
-\step[reason={compact}, diff=all]{S_n = \frac{n(n+1)}{2}}
-\end{stepdiff}
-\]
-
-\[
-\begin{stepdiff}[layout=lecture]
-\step{a_n \le b_n}
-\step[reason={lecture layout}]{\lim a_n \le \lim b_n}
-\end{stepdiff}
-\]
-
-\[
-\begin{stepdiff}[layout=wide]
+\begin{stepdiff}[highlight=none, layout=wide, reason-style=muted]
 \step{P \Rightarrow Q}
-\step[reason={wide layout}]{P \wedge R \Rightarrow Q}
+\step[reason={add hypothesis}]{P \wedge R \Rightarrow Q}
 \end{stepdiff}
 \]
 
 \[
-\begin{stepdiff}[theme=minimal, layout=wide, highlight=color]
-\step{x \approx y}
-\step[reason={relation still aligns}, diff=false]{x \equiv y}
-\step[reason={emphasis}, diff=all]{x = y}
+\begin{stepdiff}[layout=compact, frame=false]
+\step{a=b}
+\step[reason={compact}]{a=c}
 \end{stepdiff}
 \]
 

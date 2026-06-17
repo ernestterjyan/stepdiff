@@ -2,7 +2,14 @@
 \usepackage{xcolor}
 \usepackage{stepdiff}
 
-\stepdiffsetup{theme=minimal, layout=wide, highlight=underline}
+\stepdiffsetup{
+  display=notes,
+  theme=soft,
+  layout=lecture,
+  highlight=background,
+  reason-style=muted,
+  frame=true
+}
 
 \begin{document}
 
@@ -10,17 +17,18 @@
 \begin{stepdiff}
 \step{x^2-1=(x-1)(x+1)}
 \step[reason={expand}]{x^2-1=x^2-1}
+\step[reason={final}, tag=final]{x^2-1=(x-1)(x+1)}
 \end{stepdiff}
 \]
 
 \[
-\begin{stepdiff}[theme=soft, layout=compact, highlight=background]
+\begin{stepdiff}[display=focus, theme=minimal, layout=compact, highlight=underline, reason-style=plain, frame=false]
 \step{a=b}
 \step[reason={local options override setup}]{a=c}
 \end{stepdiff}
 \]
 
-\stepdiffsetup{theme=soft, highlight=color, show-reasons=false}
+\stepdiffsetup{display=slide, theme=focus, highlight=color, reason-style=badge, show-reasons=false, frame=false}
 
 \[
 \begin{stepdiff}
@@ -30,9 +38,9 @@
 \]
 
 \[
-\begin{stepdiff}[show-reasons=true]
+\begin{stepdiff}[show-reasons=true, reason-style=muted]
 \step{u=v}
-\step[reason={shown locally}]{u=w}
+\step[reason={shown locally}, tag=final]{u=w}
 \end{stepdiff}
 \]
 

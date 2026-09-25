@@ -1,0 +1,18 @@
+\documentclass{article}
+\usepackage{xcolor}
+\usepackage{stepdiff}
+\begin{document}
+\[
+\begin{stepdiff}[color-mode=typed]
+\step{a \le b}
+\step[reason={change relation}]{a \ge b}
+\step[reason={swap sides}]{b \ge a}
+\end{stepdiff}
+\]
+\[
+\begin{stepdiff}
+\step{x+x}
+\step{x+x+x}
+\end{stepdiff}
+\]
+\end{document}

@@ -19,6 +19,11 @@ return function(t)
     t.assert_contains(out, "\\SDmodified{y}")
   end)
 
+  t.test("typed mode marks changed relations as modified", function()
+    local out = diff.render_pair_color("a=b", "a<b", "auto", "typed")
+    t.assert_contains(out, " & \\SDmodified{<} ")
+  end)
+
   t.test("diff=all uses modified category in typed mode", function()
     local out = diff.render_pair_color("x", "y", "all", "typed")
     t.assert_equal(out, "\\SDmodified{y} & {}")

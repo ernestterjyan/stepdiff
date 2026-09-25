@@ -8,7 +8,7 @@ Use this checklist for a clean public release or release candidate.
 - Update version in `stepdiff.lua`.
 - Update `CHANGELOG.md`.
 - Confirm whether this is a release candidate or final release.
-- Do not tag `v1.1.0` until the final release is intended.
+- Confirm the manual and archive use the same version.
 
 ## Validation
 
@@ -16,6 +16,9 @@ Use this checklist for a clean public release or release candidate.
 - Run `make examples`.
 - Run `make test`.
 - Run `make lua-test`.
+- Run `make ctan` and inspect the archive contents.
+- Compile the demo from the extracted CTAN archive.
+- Visually inspect every page of `stepdiff-manual.pdf`.
 - Visually inspect `examples/demo.pdf`.
 - Visually inspect `examples/visual-styles.pdf`.
 - Visually inspect `examples/typed-colors.pdf`.
@@ -30,6 +33,7 @@ Use this checklist for a clean public release or release candidate.
 - Confirm visual presentation options are documented: display, theme, highlight, reason style, color mode, legend, frame, final tag, and global setup.
 - Confirm screenshot links under `docs/assets/` are stable.
 - Confirm generated PDFs are not committed.
+- Confirm the PDF manual is included in the CTAN archive.
 
 ## Publish
 

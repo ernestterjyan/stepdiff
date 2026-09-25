@@ -46,6 +46,16 @@ return function(t)
     t.assert_contains(out, "\\SDchanged{c}")
   end)
 
+  t.test("highlights a changed alignment relation", function()
+    local out = test_api.render_pair("a \\le b", "a \\ge b")
+    t.assert_contains(out, "a & \\SDchanged{\\ge} ")
+  end)
+
+  t.test("highlights a new relation", function()
+    local out = test_api.render_pair("a+b", "a=b")
+    t.assert_contains(out, " & \\SDchanged{=} ")
+  end)
+
   t.test("diff=all highlights the detected relation", function()
     local out = test_api.render_pair("a \\le b", "x \\le y", "all")
     t.assert_contains(out, "\\SDchanged{x}")

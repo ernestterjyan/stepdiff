@@ -30,6 +30,26 @@ return function(t)
     t.assert_not_contains(out, "\\SDchanged{", "unchanged output should not be highlighted")
   end)
 
+  t.test("repeated atoms keep their common prefix", function()
+    local out = render_pair("x+x", "x+x+x")
+    t.assert_equal(out, "x+x\\SDchanged{+x} & {}")
+  end)
+
+  t.test("matching does not cross the relation", function()
+    local out = render_pair("a=b", "b=a")
+    t.assert_contains(out, "\\SDchanged{b} & = \\SDchanged{a}")
+  end)
+
+  t.test("removing a relation remains visible", function()
+    local out = render_pair("a=b", "ab")
+    t.assert_equal(out, "\\SDchanged{ab} & {}")
+  end)
+
+  t.test("deletion-only changes emphasize the surviving expression", function()
+    local out = render_pair("x+y", "x")
+    t.assert_equal(out, "\\SDchanged{x} & {}")
+  end)
+
   t.test("diff=false disables highlighting", function()
     local out = render_pair("x", "y", "false")
     t.assert_equal(out, "y & {}")

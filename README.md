@@ -6,13 +6,17 @@ LuaLaTeX is required. `stepdiff` uses Lua for visual tokenization and diff rende
 
 `stepdiff` performs visual token-level diffing. It does not verify mathematical correctness, does not use a CAS, and does not understand transformations semantically.
 
+Maintainer: Ernest Terjyan. For questions and bug reports, use the [GitHub issue tracker](https://github.com/ernestterjyan/stepdiff/issues).
+
 ## Status
 
-Current target: `v1.1.0`.
+Current version: `1.1.1`.
 
 ![stepdiff demo](docs/assets/demo-preview.png)
 
 Generated PDFs are ignored by Git. Rebuild them locally with the Makefile. Rendered screenshots and release-note images can live under `docs/assets/`.
+
+The illustrated package manual is `stepdiff-manual.tex`. Build its PDF with `make manual`.
 
 ## Quick start
 
@@ -36,6 +40,8 @@ make clean
 make examples
 make test
 make lua-test
+make manual
+make ctan
 ```
 
 ## Minimal example
@@ -271,17 +277,22 @@ make examples
 ## Current limitations
 
 - Diffing is visual and token-level.
-- Removed tokens are not shown because only the current line is rendered.
+- Removed tokens are not shown because only the current line is rendered. For a deletion-only change, the surviving expression is emphasized as a cue.
 - Complex macros may not always diff perfectly.
 - Highlighting can be approximate for dense or macro-heavy notation.
 - Relation alignment uses the first recognized relation token.
 - Beamer overlay support is intentionally basic and applies to whole step rows.
 
+For an automatic highlight that needs correction, use `diff=none` on the step and wrap the chosen current-line terms with `\SDchanged{...}` (or a typed visual macro). This keeps the printed derivation under the author's control.
+
+## CTAN package
+
+`make ctan` builds `dist/stepdiff-1.1.1.zip` with the package source, README, license, example, and compiled PDF manual. It does not upload anything. Run the full test and visual checks before submitting the archive.
+
 ## Roadmap after v1.1
 
 - Improve tokenizer coverage for more common LaTeX math macros.
 - Add more examples from lecture-note workflows.
-- Prepare CTAN-style packaging metadata.
 - Consider optional integrations only if they remain clearly separate from the visual diffing core.
 
 ## License

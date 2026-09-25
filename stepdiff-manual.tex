@@ -1,0 +1,173 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=24mm]{geometry}
+\usepackage{hyperref}
+\usepackage{stepdiff}
+\hypersetup{colorlinks=true,linkcolor=SDSoftAccent,urlcolor=SDSoftAccent}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\stepdiffsetup{display=notes,theme=soft,layout=lecture,highlight=background,
+  reason-style=muted}
+
+\title{\textsf{stepdiff}\\[2pt]\large Visual changes in mathematical derivations}
+\author{Ernest Terjyan}
+\date{Version 1.1.1 \quad 25 September 2026}
+
+\begin{document}
+\maketitle
+\vspace{-1.4em}
+
+\begin{abstract}
+\noindent
+\textsf{stepdiff} is a LuaLaTeX package that highlights visual changes between
+successive lines of a mathematical derivation. It is designed for lecture notes,
+worked examples, and Beamer slides. It compares printed source tokens; it does
+not check whether a mathematical step is valid.
+\end{abstract}
+
+\section{First example}
+
+Save the file below as \texttt{example.tex} and compile it with LuaLaTeX.
+
+Put \texttt{stepdiff.sty} and \texttt{stepdiff.lua} beside
+\texttt{example.tex}, or install the package in your local TeX tree.
+
+\begin{verbatim}
+\documentclass{article}
+\usepackage{stepdiff}
+\begin{document}
+\[
+\begin{stepdiff}
+\step{a(x+b)}
+\step[reason={distribute}]{ax+ab}
+\step[reason={commute terms},tag=final]{ab+ax}
+\end{stepdiff}
+\]
+\end{document}
+\end{verbatim}
+
+The same source produces this output:
+\[
+\begin{stepdiff}
+\step{a(x+b)}
+\step[reason={distribute}]{ax+ab}
+\step[reason={commute terms},tag=final]{ab+ax}
+\end{stepdiff}
+\]
+The first line has no predecessor, so automatic highlighting begins on the
+second line. The \texttt{reason} appears beside the corresponding step.
+
+\section{A relation-aware example}
+
+The first recognized relation in each line forms an alignment point.
+The two sides are compared independently. A changed relation is highlighted
+as part of the step.
+\[
+\begin{stepdiff}[frame=true,color-mode=typed]
+\step{a_n \le b_n}
+\step[reason={swap sides}]{b_n \ge a_n}
+\step[reason={specialize},tag=final]{b_1 \ge a_1}
+\end{stepdiff}
+\]
+The second step swaps both sides, so the comparison is equivalent.
+Recognized relation tokens include \(=\), \(\le\), \(\ge\), \(<\), \(>\),
+\(\approx\), \(\sim\), \(\equiv\), \(\Rightarrow\), and
+\(\Longrightarrow\). Alignment uses the first one found.
+
+\section{Options and controls}
+
+Put global defaults in \verb|\stepdiffsetup{...}| and override them locally:
+\begin{verbatim}
+\stepdiffsetup{display=notes,theme=soft,highlight=background}
+\begin{stepdiff}[frame=true,color-mode=typed]
+  ...
+\end{stepdiff}
+\end{verbatim}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.25\linewidth}p{0.67\linewidth}@{}}
+\textbf{Option} & \textbf{Values and effect}\\
+\hline
+\texttt{display} & \texttt{notes}, \texttt{slide}, \texttt{focus}: spacing and emphasis presets.\\
+\texttt{theme} & \texttt{soft}, \texttt{minimal}, \texttt{focus}: color presets.\\
+\texttt{layout} & \texttt{compact}, \texttt{lecture}, \texttt{wide}: column spacing.\\
+\texttt{highlight} & \texttt{background}, \texttt{underline}, \texttt{color}, \texttt{none}.\\
+\texttt{color-mode} & \texttt{single} (one style), \texttt{typed} (added/modified), \texttt{teaching} (also repeated operations).\\
+\texttt{reason-style} & \texttt{plain}, \texttt{muted}, \texttt{badge}.\\
+\texttt{frame} & \texttt{true} or \texttt{false}: draw a frame around the derivation.\\
+\texttt{legend} & \texttt{true} or \texttt{false}: show typed color categories.\\
+\texttt{show-reasons} & \texttt{true} or \texttt{false}: show reason annotations.\\
+\end{tabular}
+\end{center}
+
+On individual \verb|\step| commands, \texttt{reason=\{...\}} adds an
+annotation and \texttt{tag=final} emphasizes a result. The \texttt{diff}
+option accepts \texttt{auto} (default), \texttt{none} or \texttt{false}
+(suppress automatic highlighting), and \texttt{all} (emphasize the full line).
+For example:
+\begin{verbatim}
+\step[reason={simplify},diff=all,tag=final]{x=2}
+\end{verbatim}
+
+\section{Manual correction and visual categories}
+
+Automatic token matching can be approximate for dense notation and complex
+macros. To choose exactly what is emphasized, use \texttt{diff=none} and wrap
+the desired part of the current line:
+\begin{verbatim}
+\step[diff=none]{f(x)=\SDchanged{(x+1)^2}}
+\end{verbatim}
+
+The public math-safe hooks are \verb|\SDchanged{...}| for a generic change,
+\verb|\SDadded{...}| for inserted content, \verb|\SDmodified{...}| for
+rewritten content, \verb|\SDoperation{...}| for a conservatively detected
+repeated operation, and \verb|\SDfinal{...}| for result emphasis.
+\verb|\SDmoved{...}| is available, but move detection is limited.
+You can redefine these hooks and \verb|\SDreason{...}| in the preamble;
+math hooks must remain safe in math mode.
+
+\section{Slides}
+
+In Beamer, add an overlay specification after \verb|\step|:
+\begin{verbatim}
+\begin{stepdiff}[display=slide,theme=focus]
+\step<1->{f(x)=x^2}
+\step<2->[reason={differentiate}]{f'(x)=2x}
+\end{stepdiff}
+\end{verbatim}
+Each step's formula, reason, and highlighting appear together on the
+requested overlays. Overlay syntax is accepted in article documents too,
+without overlay behavior.
+
+\section{Scope and limitations}
+
+The package compares source tokens visually and does not parse mathematics
+semantically or call a computer algebra system. It never validates equality,
+inequality, or implication. Removed tokens cannot appear in the new line;
+for a deletion-only change, the surviving expression is highlighted as a cue.
+If the automatic choice is misleading, use the manual control above.
+
+\section{Customization and troubleshooting}
+
+The generic highlight and reason styles are user hooks. For example, after
+loading the package you can change the generic highlight color with:
+\begin{verbatim}
+\renewcommand{\SDchanged}[1]{%
+  \begingroup\color{red!70!black}#1\endgroup}
+\end{verbatim}
+Keep math styling commands safe in math mode. Other visual hooks are listed
+in Section 4; the full set of presentation options is in the README.
+
+If the package is not found, check that both \texttt{stepdiff.sty} and
+\texttt{stepdiff.lua} are installed. If an engine error appears, compile
+with \texttt{lualatex}. If the first step has no highlight, that is expected:
+there is no previous line to compare. For an unexpectedly quiet later step,
+check whether \texttt{diff=none} or \texttt{highlight=none} is active.
+
+\section{Support and license}
+
+Source, examples, and issue reporting:
+\url{https://github.com/ernestterjyan/stepdiff}.
+The package is released under the MIT License; see \texttt{LICENSE}.
+
+\end{document}

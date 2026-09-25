@@ -1,5 +1,5 @@
 -- stepdiff.lua
--- Version: 1.1.0-dev
+-- Version: 1.1.1
 -- Author: Ernest Terjyan
 -- Description: LuaLaTeX package for step-by-step derivations with visual diffing.
 -- License: MIT
@@ -264,46 +264,44 @@ local function lcs_match_maps(prev, curr)
   local m = #curr
   local dp = {}
 
-  for i = 0, n do
+  for i = 1, n + 1 do
     dp[i] = {}
-    for j = 0, m do
+    for j = 1, m + 1 do
       dp[i][j] = 0
     end
   end
 
-  for i = 1, n do
-    for j = 1, m do
+  -- Work from the start when reconstructing a match. With repeated atoms,
+  -- this anchors the earliest common prefix and marks a trailing insertion
+  -- at the end instead of attributing it to the first occurrence.
+  for i = n, 1, -1 do
+    for j = m, 1, -1 do
       if prev[i].text == curr[j].text then
-        dp[i][j] = dp[i - 1][j - 1] + 1
+        dp[i][j] = dp[i + 1][j + 1] + 1
       else
-        dp[i][j] = math.max(dp[i - 1][j], dp[i][j - 1])
+        dp[i][j] = math.max(dp[i + 1][j], dp[i][j + 1])
       end
     end
   end
 
   local matched_curr = {}
   local matched_prev = {}
-  local pairs_reversed = {}
-  local i = n
-  local j = m
+  local pairs = {}
+  local i = 1
+  local j = 1
 
-  while i > 0 and j > 0 do
+  while i <= n and j <= m do
     if prev[i].text == curr[j].text then
       matched_prev[i] = true
       matched_curr[j] = true
-      pairs_reversed[#pairs_reversed + 1] = { prev = i, curr = j }
-      i = i - 1
-      j = j - 1
-    elseif dp[i - 1][j] >= dp[i][j - 1] then
-      i = i - 1
+      pairs[#pairs + 1] = { prev = i, curr = j }
+      i = i + 1
+      j = j + 1
+    elseif dp[i + 1][j] >= dp[i][j + 1] then
+      i = i + 1
     else
-      j = j - 1
+      j = j + 1
     end
-  end
-
-  local pairs = {}
-  for k = #pairs_reversed, 1, -1 do
-    pairs[#pairs + 1] = pairs_reversed[k]
   end
 
   return matched_curr, matched_prev, pairs
@@ -488,6 +486,34 @@ local function side_slice(tokens, first_index, last_index)
   return side
 end
 
+local function token_slice(tokens, first_index, last_index)
+  local slice = {}
+  for i = first_index, last_index do
+    slice[#slice + 1] = tokens[i]
+  end
+  return slice
+end
+
+local function operation_slice(flags, first_index, last_index)
+  local slice = {}
+  for i = first_index, last_index do
+    if flags[i] then
+      slice[i - first_index + 1] = true
+    end
+  end
+  return slice
+end
+
+local function match_context(prev_tokens, curr_tokens)
+  local matched_curr, matched_prev, pairs = lcs_match_maps(prev_tokens, curr_tokens)
+  return {
+    prev_tokens = prev_tokens,
+    matched_curr = matched_curr,
+    matched_prev = matched_prev,
+    pairs = pairs
+  }
+end
+
 local function prefix_before_matching_suffix(prev_side, curr_side)
   if #prev_side == 0 or #curr_side <= #prev_side then
     return nil
@@ -669,6 +695,26 @@ local function render_token_range(
     operation_flags
   )
 
+  -- A deletion-only change leaves no unmatched token on the current line.
+  -- Emphasize the surviving expression so that the step does not look
+  -- identical; the removed material itself is not rendered.
+  if match_context ~= nil then
+    local visible_change = false
+    for i = first_index, last_index do
+      if categories[i] ~= nil and not weak_tokens[tokens[i].text] then
+        visible_change = true
+        break
+      end
+    end
+    if not visible_change then
+      for i, token in ipairs(match_context.prev_tokens) do
+        if not match_context.matched_prev[i] and not weak_tokens[token.text] then
+          return render_all_range(tokens, first_index, last_index, "modified")
+        end
+      end
+    end
+  end
+
   for i = first_index, last_index do
     local token = tokens[i]
     local category = categories[i]
@@ -734,50 +780,68 @@ local function select_render_range(diff_mode, all_category)
 end
 
 local function render_step_cells(prev_step, step)
-  local match_context = nil
-  local operation_flags = {}
-
-  if prev_step ~= nil and step.diff_mode == "auto" then
-    local matched_curr, matched_prev, pairs = lcs_match_maps(prev_step.tokens, step.tokens)
-    match_context = {
-      prev_tokens = prev_step.tokens,
-      matched_curr = matched_curr,
-      matched_prev = matched_prev,
-      pairs = pairs
-    }
-    operation_flags = detect_operation_flags(prev_step, step)
-  end
-
   local alignment_index, relation_text = find_alignment_relation(step.tokens)
+  local prev_alignment_index, prev_relation_text = nil, nil
+  if prev_step ~= nil then
+    prev_alignment_index, prev_relation_text = find_alignment_relation(prev_step.tokens)
+  end
   local all_category = is_final_step(step) and "final" or "modified"
   local render_range = select_render_range(step.diff_mode, all_category)
 
   if alignment_index ~= nil then
+    local lhs_tokens = token_slice(step.tokens, 1, alignment_index - 1)
+    local rhs_tokens = token_slice(step.tokens, alignment_index + 1, #step.tokens)
+    local lhs_context, rhs_context = nil, nil
+    local operation_flags = {}
+    if prev_step ~= nil and step.diff_mode == "auto" then
+      local prev_lhs = {}
+      local prev_rhs = {}
+      if prev_alignment_index ~= nil then
+        prev_lhs = token_slice(prev_step.tokens, 1, prev_alignment_index - 1)
+        prev_rhs = token_slice(prev_step.tokens, prev_alignment_index + 1, #prev_step.tokens)
+      end
+      lhs_context = match_context(prev_lhs, lhs_tokens)
+      rhs_context = match_context(prev_rhs, rhs_tokens)
+      operation_flags = detect_operation_flags(prev_step, step)
+    end
     local lhs = render_range(
-      step.tokens,
+      lhs_tokens,
       1,
-      alignment_index - 1,
-      match_context,
-      alignment_index,
-      operation_flags
+      #lhs_tokens,
+      lhs_context,
+      nil,
+      operation_slice(operation_flags, 1, alignment_index - 1)
     )
     local rhs = render_range(
-      step.tokens,
-      alignment_index + 1,
-      #step.tokens,
-      match_context,
-      alignment_index,
-      operation_flags
+      rhs_tokens,
+      1,
+      #rhs_tokens,
+      rhs_context,
+      nil,
+      operation_slice(operation_flags, alignment_index + 1, #step.tokens)
     )
     local relation = relation_text
     if step.diff_mode == "all" then
       local wrapper = wrapper_for_category(all_category)
       relation = wrapper .. "{" .. relation_text .. "}"
+    elseif step.diff_mode == "auto" and prev_step ~= nil and relation_text ~= prev_relation_text then
+      local category = prev_relation_text == nil and "added" or "modified"
+      relation = wrapper_for_category(category) .. "{" .. relation_text .. "}"
     end
     return lhs, relation .. " " .. rhs
   end
 
-  return render_range(step.tokens, 1, #step.tokens, match_context, alignment_index, operation_flags), "{}"
+  if prev_step ~= nil and step.diff_mode == "auto" and prev_alignment_index ~= nil then
+    -- The old relation disappeared. Highlight the current expression rather
+    -- than presenting a structural change as an unchanged line.
+    return render_all_range(step.tokens, 1, #step.tokens, "modified"), "{}"
+  end
+
+  local context = nil
+  if prev_step ~= nil and step.diff_mode == "auto" then
+    context = match_context(prev_step.tokens, step.tokens)
+  end
+  return render_range(step.tokens, 1, #step.tokens, context, nil, {}), "{}"
 end
 
 local function render_step_body(prev_step, step)

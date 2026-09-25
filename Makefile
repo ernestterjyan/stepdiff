@@ -1,4 +1,6 @@
-.PHONY: demo examples test lua-test clean
+.PHONY: demo examples test lua-test manual ctan clean
+
+VERSION := 1.1.1
 
 EXAMPLES := $(sort $(wildcard examples/*.tex))
 TESTS := $(sort $(wildcard tests/*.tex))
@@ -38,6 +40,19 @@ test:
 
 lua-test:
 	texlua lua-tests/run.lua
+
+manual:
+	lualatex -interaction=nonstopmode -halt-on-error stepdiff-manual.tex
+	lualatex -interaction=nonstopmode -halt-on-error stepdiff-manual.tex
+
+ctan: manual
+	rm -rf dist/stepdiff dist/stepdiff-$(VERSION).zip
+	mkdir -p dist/stepdiff
+	cp README.md CHANGELOG.md LICENSE stepdiff.sty stepdiff.lua stepdiff-manual.tex stepdiff-manual.pdf dist/stepdiff/
+	cp examples/demo.tex dist/stepdiff/stepdiff-demo.tex
+	mkdir -p dist/stepdiff/docs/assets
+	cp docs/assets/demo-preview.png dist/stepdiff/docs/assets/
+	cd dist && zip -q -r stepdiff-$(VERSION).zip stepdiff
 
 clean:
 	rm -f $(ROOT_CLEAN_FILES)

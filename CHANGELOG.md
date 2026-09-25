@@ -1,6 +1,22 @@
 # Changelog
 
-## 1.1.0 - Unreleased
+## 1.1.1 - 2026-09-25
+
+### Fixed
+- Highlight changes to the first aligned relation, such as `\le` becoming `\ge`.
+- Compare the two sides of aligned relations independently, so matching tokens cannot cross the relation.
+- Prefer the earliest common tokens when an expression contains repeated atoms.
+- Emphasize the surviving expression when a step only removes tokens, so the change is not invisible.
+- Report the LuaLaTeX engine requirement explicitly.
+
+### Added
+- Regression tests for relation changes, removed relations, deletion-only changes, and repeated atoms.
+- A standalone illustrated PDF manual and a reproducible CTAN archive target.
+
+### Notes
+Removed tokens are still not printed; a deletion-only step highlights what remains. The package performs visual diffing and does not verify mathematics.
+
+## 1.1.0 - 2026-06-17
 
 ### Added
 - Higher-level display modes: `notes`, `slide`, and `focus`.

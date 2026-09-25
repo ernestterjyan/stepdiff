@@ -1,5 +1,5 @@
 % stepdiff
-% Version: 1.1.0-dev
+% Version: 1.1.1
 % Author: Ernest Terjyan
 % Description: LuaLaTeX package for step-by-step derivations with visual diffing.
 % License: MIT
@@ -9,7 +9,12 @@
 % ---------------------------------------------------------------------------
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{stepdiff}
-  [2026/06/14 v1.1.0-dev Token-level diffs for step-by-step derivations]
+  [2026/09/25 v1.1.1 Token-level diffs for step-by-step derivations]
+
+\RequirePackage{iftex}
+\ifluatex\else
+  \PackageError{stepdiff}{LuaLaTeX is required}{Compile this document with lualatex.}
+\fi
 
 % ---------------------------------------------------------------------------
 % Required packages
